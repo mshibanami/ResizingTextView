@@ -34,7 +34,14 @@ ResizingTextView(
 
 ## Demo
 
-TBD
+### iOS
+
+https://user-images.githubusercontent.com/1333214/184529544-7165dea5-4d51-40b3-a2de-d887aa24a5a4.mov
+
+### macOS
+
+https://user-images.githubusercontent.com/1333214/184529535-ce92376b-ad31-47e5-8a0a-f79f60068ff5.mov
+
 
 ## Apps that uses this package
 
