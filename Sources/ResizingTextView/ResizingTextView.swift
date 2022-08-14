@@ -10,9 +10,9 @@ public struct ResizingTextView: View, Equatable {
     var isEditable: Bool
     var isScrollable: Bool
     var lineLimit: Int?
-    var font: UXFont
+    var font: UXFont = .preferredFont(forTextStyle: .body)
     var canHaveNewLineCharacters: Bool
-    var foregroundColor: UXColor
+    var foregroundColor: UXColor = defaultLabelColor
     var hasGreedyWidth: Bool
 #if os(macOS)
     var focusesNextKeyViewByTabKey: Bool = true
@@ -26,18 +26,15 @@ public struct ResizingTextView: View, Equatable {
         UXColor.label
 #endif
     }
-    
     @State private var isFocused = false
 
-    internal init(
+    public init(
         text: Binding<String>,
         placeholder: String? = nil,
         isEditable: Bool = true,
         isScrollable: Bool = false,
         lineLimit: Int? = nil,
-        font: UXFont = .preferredFont(forTextStyle: .body),
         canHaveNewLineCharacters: Bool = true,
-        foregroundColor: UXColor = defaultLabelColor,
         hasGreedyWidth: Bool = true
     ) {
         self._text = text
@@ -45,9 +42,7 @@ public struct ResizingTextView: View, Equatable {
         self.isEditable = isEditable
         self.isScrollable = isScrollable
         self.lineLimit = lineLimit
-        self.font = font
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
-        self.foregroundColor = foregroundColor
         self.hasGreedyWidth = hasGreedyWidth
     }
     
@@ -137,7 +132,7 @@ public struct ResizingTextView: View, Equatable {
     }
 }
 
-extension ResizingTextView {
+public extension ResizingTextView {
 #if os(macOS)
     func focusesNextKeyViewByTabKey(_ focuses: Bool) -> ResizingTextView {
         var newSelf = self
@@ -148,6 +143,30 @@ extension ResizingTextView {
     func onInsertNewline(_ perform: (() -> Bool)?) -> ResizingTextView {
         var newSelf = self
         newSelf.onInsertNewline = perform
+        return newSelf
+    }
+    
+    func foregroundColor(_ color: NSColor) -> ResizingTextView {
+        var newSelf = self
+        newSelf.foregroundColor = color
+        return newSelf
+    }
+    
+    func font(_ font: NSFont) -> ResizingTextView {
+        var newSelf = self
+        newSelf.font = font
+        return newSelf
+    }
+#elseif os(iOS)
+    func foregroundColor(_ color: UIColor) -> ResizingTextView {
+        var newSelf = self
+        newSelf.foregroundColor = color
+        return newSelf
+    }
+    
+    func font(_ font: UIFont) -> ResizingTextView {
+        var newSelf = self
+        newSelf.font = font
         return newSelf
     }
 #endif
@@ -188,9 +207,9 @@ struct Previews_ResizingTextView_Previews: PreviewProvider {
                         .bold()
                     ResizingTextView(
                         text: $text3,
-                        isEditable: false,
-                        font: UXFont.boldSystemFont(ofSize: 16),
-                        foregroundColor: .magenta)
+                        isEditable: false)
+                    .font(.boldSystemFont(ofSize: 16))
+                    .foregroundColor(.magenta)
                     .padding(.bottom, 20)
 
                     Text("Uneditable, selectable, max 2 lines")
