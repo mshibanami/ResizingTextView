@@ -7,22 +7,50 @@ import Combine
 public struct ResizingTextView: View, Equatable {
     @Binding var text: String
     var placeholder: String?
-    var isEditable = true
-    var isScrollable = false
+    var isEditable: Bool
+    var isScrollable: Bool
     var lineLimit: Int?
-    var font = UXFont.preferredFont(forTextStyle: .body)
-    var canHaveNewLineCharacters = true
+    var font: UXFont
+    var canHaveNewLineCharacters: Bool
+    var foregroundColor: UXColor
+    var hasGreedyWidth: Bool
 #if os(macOS)
-    var focusesNextKeyViewByTabKey = true
-    var foregroundColor = NSColor.labelColor
+    var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
-#elseif os(iOS)
-    var foregroundColor = UIColor.label
 #endif
-    var hasGreedyWidth: Bool = true
 
+    static var defaultLabelColor: UXColor {
+#if os(macOS)
+        UXColor.labelColor
+#elseif os(iOS)
+        UXColor.label
+#endif
+    }
+    
     @State private var isFocused = false
 
+    internal init(
+        text: Binding<String>,
+        placeholder: String? = nil,
+        isEditable: Bool = true,
+        isScrollable: Bool = false,
+        lineLimit: Int? = nil,
+        font: UXFont = .preferredFont(forTextStyle: .body),
+        canHaveNewLineCharacters: Bool = true,
+        foregroundColor: UXColor = defaultLabelColor,
+        hasGreedyWidth: Bool = true
+    ) {
+        self._text = text
+        self.placeholder = placeholder
+        self.isEditable = isEditable
+        self.isScrollable = isScrollable
+        self.lineLimit = lineLimit
+        self.font = font
+        self.canHaveNewLineCharacters = canHaveNewLineCharacters
+        self.foregroundColor = foregroundColor
+        self.hasGreedyWidth = hasGreedyWidth
+    }
+    
     public var body: some View {
         invisibleSizingText
             .overlay(visibleTextViewWrapper)
@@ -107,6 +135,22 @@ public struct ResizingTextView: View, Equatable {
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
         lhs.text == rhs.text
     }
+}
+
+extension ResizingTextView {
+#if os(macOS)
+    func focusesNextKeyViewByTabKey(_ focuses: Bool) -> ResizingTextView {
+        var newSelf = self
+        newSelf.focusesNextKeyViewByTabKey = focuses
+        return newSelf
+    }
+
+    func onInsertNewline(_ perform: (() -> Bool)?) -> ResizingTextView {
+        var newSelf = self
+        newSelf.onInsertNewline = perform
+        return newSelf
+    }
+#endif
 }
 
 struct Previews_ResizingTextView_Previews: PreviewProvider {

@@ -6,17 +6,17 @@ import SwiftUI
 struct TextView: NSViewRepresentable {
     static let defaultForegroundColor = Color(NSColor.textColor)
 
-    @Binding private var text: String
-    fileprivate var placeholder: String?
-    fileprivate var isEditable: Bool
-    fileprivate var isScrollable: Bool
-    fileprivate var lineLimit: Int
-    fileprivate var font: NSFont
-    fileprivate var canHaveNewLineCharacters: Bool
-    fileprivate var focusesNextKeyViewByTabKey: Bool
-    fileprivate var foregroundColor: Color
-    fileprivate var onFocusChanged: ((Bool) -> Void)?
-    fileprivate var onInsertNewline: (() -> Bool)?
+    @Binding var text: String
+    var placeholder: String?
+    var isEditable: Bool
+    var isScrollable: Bool
+    var lineLimit: Int
+    var font: NSFont
+    var canHaveNewLineCharacters: Bool
+    var focusesNextKeyViewByTabKey: Bool
+    var foregroundColor: Color
+    var onFocusChanged: ((Bool) -> Void)?
+    var onInsertNewline: (() -> Bool)?
 
     init(_ text: Binding<String>,
          placeholder: String? = nil,
@@ -177,20 +177,6 @@ struct TextView: NSViewRepresentable {
                 selectedRanges = textView.selectedRanges
             }
         }
-    }
-}
-
-extension TextView {
-    func onFocusChanged(_ perform: ((Bool) -> Void)?) -> TextView {
-        var newSelf = self
-        newSelf.onFocusChanged = perform
-        return newSelf
-    }
-
-    func onInsertNewline(_ perform: (() -> Bool)?) -> TextView {
-        var newSelf = self
-        newSelf.onInsertNewline = perform
-        return newSelf
     }
 }
 
