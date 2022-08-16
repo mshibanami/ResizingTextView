@@ -86,8 +86,10 @@ public struct ResizingTextView: View, Equatable {
                 foregroundColor: Color(foregroundColor),
                 onFocusChanged: { isFocused in
                     if isFocused {
-                        withAnimation(Animation.easeInOut(duration: 0.2)) {
-                            self.isFocused = isFocused
+                        DispatchQueue.main.async {
+                            withAnimation(Animation.easeInOut(duration: 0.2)) {
+                                self.isFocused = isFocused
+                            }
                         }
                     } else {
                         self.isFocused = false
