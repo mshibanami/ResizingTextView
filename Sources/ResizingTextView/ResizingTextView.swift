@@ -18,7 +18,7 @@ public struct ResizingTextView: View, Equatable {
     var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
 #endif
-
+    
     static var defaultLabelColor: UXColor {
 #if os(macOS)
         UXColor.labelColor
@@ -27,7 +27,7 @@ public struct ResizingTextView: View, Equatable {
 #endif
     }
     @State private var isFocused = false
-
+    
     public init(
         text: Binding<String>,
         placeholder: String? = nil,
@@ -50,7 +50,7 @@ public struct ResizingTextView: View, Equatable {
         invisibleSizingText
             .overlay(visibleTextViewWrapper)
     }
-
+    
     var invisibleSizingText: some View {
         Text(text.isEmpty ? " " : text)
             .lineLimit(lineLimit ?? .max)
@@ -70,44 +70,44 @@ public struct ResizingTextView: View, Equatable {
                 alignment: .leading)
             .layoutPriority(1)
     }
-
+    
     var visibleTextViewWrapper: some View {
-        ZStack(alignment: .topLeading) {
 #if os(macOS)
-            TextView(
-                $text,
-                placeholder: placeholder,
-                isEditable: isEditable,
-                isScrollable: isScrollable,
-                lineLimit: lineLimit ?? .max,
-                font: font,
-                canHaveNewLineCharacters: canHaveNewLineCharacters,
-                focusesNextKeyViewByTabKey: focusesNextKeyViewByTabKey,
-                foregroundColor: Color(foregroundColor),
-                onFocusChanged: { isFocused in
-                    if isFocused {
-                        DispatchQueue.main.async {
-                            withAnimation(Animation.easeInOut(duration: 0.2)) {
-                                self.isFocused = isFocused
-                            }
+        TextView(
+            $text,
+            placeholder: placeholder,
+            isEditable: isEditable,
+            isScrollable: isScrollable,
+            lineLimit: lineLimit ?? .max,
+            font: font,
+            canHaveNewLineCharacters: canHaveNewLineCharacters,
+            focusesNextKeyViewByTabKey: focusesNextKeyViewByTabKey,
+            foregroundColor: Color(foregroundColor),
+            onFocusChanged: { isFocused in
+                if isFocused {
+                    DispatchQueue.main.async {
+                        withAnimation(Animation.easeInOut(duration: 0.2)) {
+                            self.isFocused = isFocused
                         }
-                    } else {
-                        self.isFocused = false
                     }
-                },
-                onInsertNewline: onInsertNewline
-            )
-            .padding(.vertical, isEditable ? 8 : 0)
-            .padding(.horizontal, isEditable ? 9 : 0)
-            .background(isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
-            .roundedFilledBorder(
-                isEditable ? Color(UXColor.separatorColor) : .clear,
-                width: isEditable ? 1 : 0,
-                cornerRadius: isEditable ? 10 : 0)
-            .overlay(RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.accentColor.opacity(0.5), lineWidth: 4)
-                .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
+                } else {
+                    self.isFocused = false
+                }
+            },
+            onInsertNewline: onInsertNewline
+        )
+        .padding(.vertical, isEditable ? 8 : 0)
+        .padding(.horizontal, isEditable ? 9 : 0)
+        .background(isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
+        .roundedFilledBorder(
+            isEditable ? Color(UXColor.separatorColor) : .clear,
+            width: isEditable ? 1 : 0,
+            cornerRadius: isEditable ? 10 : 0)
+        .overlay(RoundedRectangle(cornerRadius: 10)
+            .stroke(Color.accentColor.opacity(0.5), lineWidth: 4)
+            .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
 #elseif os(iOS)
+        ZStack(alignment: .topLeading) {
             TextView(
                 $text,
                 isEditable: isEditable,
@@ -116,7 +116,7 @@ public struct ResizingTextView: View, Equatable {
                 font: font,
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor))
-
+            
             if text.isEmpty, let placeholder = placeholder {
                 Text(placeholder)
                     .font(Font(font))
@@ -125,10 +125,10 @@ public struct ResizingTextView: View, Equatable {
                     .padding(.top, 9)
                     .allowsHitTesting(false)
             }
-#endif
         }
+#endif
     }
-
+    
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
         lhs.text == rhs.text
     }
@@ -141,7 +141,7 @@ public extension ResizingTextView {
         newSelf.focusesNextKeyViewByTabKey = focuses
         return newSelf
     }
-
+    
     func onInsertNewline(_ perform: (() -> Bool)?) -> ResizingTextView {
         var newSelf = self
         newSelf.onInsertNewline = perform
@@ -178,12 +178,12 @@ struct Previews_ResizingTextView_Previews: PreviewProvider {
     static var previews: some View {
         PreviewWrapper()
     }
-
+    
     struct PreviewWrapper: View {
         @State var text1 = "hello"
         @State var text2 = ""
         @State var text3 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-
+        
         var body: some View {
             ScrollView {
                 VStack(alignment: .leading) {
@@ -194,7 +194,7 @@ struct Previews_ResizingTextView_Previews: PreviewProvider {
                         isScrollable: true,
                         canHaveNewLineCharacters: true)
                     .padding(.bottom, 20)
-
+                    
                     Text("Fixed-height, newline characters not allowed")
                         .bold()
                     ResizingTextView(
@@ -204,7 +204,7 @@ struct Previews_ResizingTextView_Previews: PreviewProvider {
                         canHaveNewLineCharacters: false)
                     .frame(height: 50)
                     .padding(.bottom, 20)
-
+                    
                     Text("Uneditable, selectable, color/font changed")
                         .bold()
                     ResizingTextView(
@@ -213,7 +213,7 @@ struct Previews_ResizingTextView_Previews: PreviewProvider {
                     .font(.boldSystemFont(ofSize: 16))
                     .foregroundColor(.magenta)
                     .padding(.bottom, 20)
-
+                    
                     Text("Uneditable, selectable, max 2 lines")
                         .bold()
                     ResizingTextView(
@@ -221,7 +221,7 @@ struct Previews_ResizingTextView_Previews: PreviewProvider {
                         isEditable: false,
                         lineLimit: 2)
                     .padding(.bottom, 20)
-
+                    
                     Spacer()
                 }
                 .padding()
