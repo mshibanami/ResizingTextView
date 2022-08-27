@@ -81,6 +81,12 @@ struct TextView: NSViewRepresentable {
             view.hasVerticalScroller = isScrollable
         }
 
+        let documentHeightIsChanged = (view.documentView?.bounds.height ?? 0) > view.bounds.height
+        let scrollerStyle = (isScrollable && documentHeightIsChanged) ? NSScroller.preferredScrollerStyle : .overlay
+        if view.scrollerStyle != scrollerStyle {
+            view.scrollerStyle = scrollerStyle
+        }
+        
         if let placeholder = placeholder {
             textView.placeholderAttributedString = NSAttributedString(
                 string: placeholder,
