@@ -42,8 +42,6 @@ https://user-images.githubusercontent.com/1333214/184529544-7165dea5-4d51-40b3-a
 
 https://user-images.githubusercontent.com/1333214/184529535-ce92376b-ad31-47e5-8a0a-f79f60068ff5.mov
 
-You can find the code in the above demos here: https://github.com/mshibanami/ResizingTextView/blob/main/Sources/ResizingTextView/ResizingTextView.swift
-
 ## Apps that use this package
 
 - [Redirect Web for Safari](https://apps.apple.com/app/id1571283503)
