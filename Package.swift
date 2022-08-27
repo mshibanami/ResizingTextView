@@ -7,7 +7,7 @@ let package = Package(
     name: "ResizingTextView",
     platforms: [
         .iOS(.v14),
-        .macOS(.v12)
+        .macOS(.v11)
     ],
     products: [
         .library(
