@@ -19,13 +19,16 @@ public struct ResizingTextView: View, Equatable {
     var onInsertNewline: (() -> Bool)?
 #endif
     
-    static var defaultLabelColor: UXColor {
 #if os(macOS)
-        UXColor.labelColor
-#elseif os(iOS)
-        UXColor.label
-#endif
+    public static var defaultLabelColor: NSColor {
+        NSColor.labelColor
     }
+#elseif os(iOS)
+    public static var defaultLabelColor: UIColor {
+        UIColor.label
+    }
+#endif
+
     @State private var isFocused = false
     
     public init(
