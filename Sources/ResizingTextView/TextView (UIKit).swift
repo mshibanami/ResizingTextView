@@ -11,7 +11,6 @@ struct TextView: UIViewRepresentable {
     private var isEditable: Bool
     private var isScrollable: Bool
     private var lineLimit: Int
-    private var lineBreakMode: NSLineBreakMode
     private var foregroundColor: Color
     private var font: UIFont
     private var canHaveNewLineCharacters: Bool
@@ -21,7 +20,6 @@ struct TextView: UIViewRepresentable {
          isEditable: Bool = true,
          isScrollable: Bool = true,
          lineLimit: Int = 0,
-         lineBreakMode: NSLineBreakMode? = nil,
          font: UIFont,
          canHaveNewLineCharacters: Bool = true,
          foregroundColor: Color = defaultForegroundColor) {
@@ -29,7 +27,6 @@ struct TextView: UIViewRepresentable {
         self.isEditable = isEditable
         self.isScrollable = isScrollable
         self.lineLimit = lineLimit
-        self.lineBreakMode = lineBreakMode ?? .byCharWrapping
         self.foregroundColor = foregroundColor
         self.font = font
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
@@ -66,9 +63,6 @@ struct TextView: UIViewRepresentable {
         }
         if view.textContainer.maximumNumberOfLines != lineLimit {
             view.textContainer.maximumNumberOfLines = lineLimit
-        }
-        if view.textContainer.lineBreakMode != lineBreakMode {
-            view.textContainer.lineBreakMode = lineBreakMode
         }
         if lineLimit > 0 {
             if view.textContainer.lineBreakMode != .byTruncatingTail {

@@ -11,7 +11,6 @@ struct TextView: NSViewRepresentable {
     var isEditable: Bool
     var isScrollable: Bool
     var lineLimit: Int
-    var lineBreakMode: NSLineBreakMode
     var font: NSFont
     var canHaveNewLineCharacters: Bool
     var focusesNextKeyViewByTabKey: Bool
@@ -24,7 +23,6 @@ struct TextView: NSViewRepresentable {
          isEditable: Bool = true,
          isScrollable: Bool = true,
          lineLimit: Int = 0,
-         lineBreakMode: NSLineBreakMode? = nil,
          font: NSFont,
          canHaveNewLineCharacters: Bool = true,
          focusesNextKeyViewByTabKey: Bool = true,
@@ -37,7 +35,6 @@ struct TextView: NSViewRepresentable {
         self.isEditable = isEditable
         self.isScrollable = isScrollable
         self.lineLimit = lineLimit
-        self.lineBreakMode = lineBreakMode ?? .byCharWrapping
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.focusesNextKeyViewByTabKey = focusesNextKeyViewByTabKey
         self.foregroundColor = foregroundColor
@@ -118,9 +115,6 @@ struct TextView: NSViewRepresentable {
         }
         if textView.textContainer?.maximumNumberOfLines != lineLimit {
             textView.textContainer?.maximumNumberOfLines = lineLimit
-        }
-        if textView.textContainer?.lineBreakMode != lineBreakMode {
-            textView.textContainer?.lineBreakMode = lineBreakMode
         }
         if lineLimit > 0 {
             if textView.textContainer?.lineBreakMode != .byTruncatingTail {

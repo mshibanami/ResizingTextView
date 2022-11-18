@@ -10,7 +10,6 @@ public struct ResizingTextView: View, Equatable {
     var isEditable: Bool
     var isScrollable: Bool
     var lineLimit: Int?
-    var lineBreakMode: NSLineBreakMode?
     var font: UXFont = .preferredFont(forTextStyle: .body)
     var canHaveNewLineCharacters: Bool
     var foregroundColor: UXColor = defaultLabelColor
@@ -83,7 +82,6 @@ public struct ResizingTextView: View, Equatable {
             isEditable: isEditable,
             isScrollable: isScrollable,
             lineLimit: lineLimit ?? .max,
-            lineBreakMode: lineBreakMode,
             font: font,
             canHaveNewLineCharacters: canHaveNewLineCharacters,
             focusesNextKeyViewByTabKey: focusesNextKeyViewByTabKey,
@@ -154,12 +152,6 @@ public struct ResizingTextView: View, Equatable {
 }
 
 public extension ResizingTextView {
-    func lineBreakMode(_ lineBreakMode: NSLineBreakMode) -> Self {
-        var newSelf = self
-        newSelf.lineBreakMode = lineBreakMode
-        return newSelf
-    }
-
 #if os(macOS)
     func focusesNextKeyViewByTabKey(_ focuses: Bool) -> Self {
         var newSelf = self
