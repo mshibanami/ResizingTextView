@@ -161,37 +161,38 @@ public extension ResizingTextView {
     }
 
 #if os(macOS)
-    func focusesNextKeyViewByTabKey(_ focuses: Bool) -> ResizingTextView {
+    func focusesNextKeyViewByTabKey(_ focuses: Bool) -> Self {
         var newSelf = self
         newSelf.focusesNextKeyViewByTabKey = focuses
         return newSelf
     }
     
-    func onInsertNewline(_ perform: (() -> Bool)?) -> ResizingTextView {
+    func onInsertNewline(_ perform: (() -> Bool)?) -> Self {
         var newSelf = self
         newSelf.onInsertNewline = perform
         return newSelf
     }
     
-    func foregroundColor(_ color: NSColor) -> ResizingTextView {
+    func foregroundColor(_ color: NSColor) -> Self {
         var newSelf = self
         newSelf.foregroundColor = color
         return newSelf
     }
     
-    func font(_ font: NSFont) -> ResizingTextView {
+    func font(_ font: NSFont) -> Self {
         var newSelf = self
         newSelf.font = font
         return newSelf
     }
+
 #elseif os(iOS)
-    func foregroundColor(_ color: UIColor) -> ResizingTextView {
+    func foregroundColor(_ color: UIColor) -> Self {
         var newSelf = self
         newSelf.foregroundColor = color
         return newSelf
     }
     
-    func font(_ font: UIFont) -> ResizingTextView {
+    func font(_ font: UIFont) -> Self {
         var newSelf = self
         newSelf.font = font
         return newSelf

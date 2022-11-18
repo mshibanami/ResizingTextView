@@ -90,7 +90,7 @@ struct TextView: NSViewRepresentable {
             view.scrollerStyle = scrollerStyle
         }
         
-        if let placeholder = placeholder {
+        if let placeholder {
             textView.placeholderAttributedString = NSAttributedString(
                 string: placeholder,
                 attributes: [
