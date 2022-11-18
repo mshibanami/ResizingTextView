@@ -138,7 +138,6 @@ public struct ResizingTextView: View, Equatable {
         && lhs.isEditable == rhs.isEditable
         && lhs.isScrollable == rhs.isScrollable
         && lhs.lineLimit == rhs.lineLimit
-        && lhs.lineBreakMode == rhs.lineBreakMode
         && lhs.font == rhs.font
         && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
         && lhs.foregroundColor == rhs.foregroundColor
