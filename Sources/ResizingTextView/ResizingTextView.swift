@@ -133,7 +133,8 @@ public struct ResizingTextView: View, Equatable {
     }
     
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
-        var result = lhs.placeholder == rhs.placeholder
+        var result = lhs.text == rhs.text
+        && lhs.placeholder == rhs.placeholder
         && lhs.placeholder == rhs.placeholder
         && lhs.isEditable == rhs.isEditable
         && lhs.isScrollable == rhs.isScrollable
