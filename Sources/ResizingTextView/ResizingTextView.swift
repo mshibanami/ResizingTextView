@@ -135,7 +135,21 @@ public struct ResizingTextView: View, Equatable {
     }
     
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
-        lhs.text == rhs.text
+        var result = lhs.placeholder == rhs.placeholder
+        && lhs.placeholder == rhs.placeholder
+        && lhs.isEditable == rhs.isEditable
+        && lhs.isScrollable == rhs.isScrollable
+        && lhs.lineLimit == rhs.lineLimit
+        && lhs.lineBreakMode == rhs.lineBreakMode
+        && lhs.font == rhs.font
+        && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
+        && lhs.foregroundColor == rhs.foregroundColor
+        && lhs.hasGreedyWidth == rhs.hasGreedyWidth
+        && lhs.isFocused == rhs.isFocused
+#if os(macOS)
+        result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
+#endif
+        return result
     }
 }
 
