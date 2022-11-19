@@ -126,10 +126,9 @@ struct TextView: NSViewRepresentable {
                 textView.textContainer?.lineBreakMode = .byTruncatingTail
             }
         }
-        if !context.coordinator.selectedRanges.isEmpty {
-            if textView.selectedRanges != context.coordinator.selectedRanges {
-                textView.selectedRanges = context.coordinator.selectedRanges
-            }
+        if !context.coordinator.selectedRanges.isEmpty,
+           textView.selectedRanges != context.coordinator.selectedRanges {
+            textView.selectedRanges = context.coordinator.selectedRanges
         }
     }
 
