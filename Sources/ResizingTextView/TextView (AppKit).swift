@@ -61,7 +61,12 @@ struct TextView: NSViewRepresentable {
         textView.translatesAutoresizingMaskIntoConstraints = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
-        textView.onFocusChanged = onFocusChanged
+        textView.onFocusChanged = { isFocused in
+            if !isFocused, !isEditable {
+                textView.setSelectedRange(.init())
+            }
+            onFocusChanged?(isFocused)
+        }
 
         let scrollView = TextEnclosingScrollView()
         scrollView.documentView = textView
