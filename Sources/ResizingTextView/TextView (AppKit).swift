@@ -64,17 +64,17 @@ struct TextView: NSViewRepresentable {
         textView.translatesAutoresizingMaskIntoConstraints = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
-        textView.onFocusChanged = { isFocused in
+        textView.onFocusChanged = { [weak textView] isFocused in
             if isFocused {
                 if text.isEmpty {
                     // HACK: A workaround for the bug that the cursor is
                     // not shown when focusing an empty TextView.
-                    textView.setSelectedRange(.init())
+                    textView?.setSelectedRange(.init())
                 }
             } else {
                 // Don't keep the selection
-                Task.detached {
-                    await textView.setSelectedRange(.init())
+                Task.detached { [weak textView] in
+                    await textView?.setSelectedRange(.init())
                 }
             }
             onFocusChanged?(isFocused)
