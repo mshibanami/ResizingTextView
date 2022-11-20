@@ -10,6 +10,7 @@ struct TextView: NSViewRepresentable {
     var placeholder: String?
     var isEditable: Bool
     var isScrollable: Bool
+    var isSelectable: Bool
     var lineLimit: Int
     var font: NSFont
     var canHaveNewLineCharacters: Bool
@@ -21,7 +22,8 @@ struct TextView: NSViewRepresentable {
     init(_ text: Binding<String>,
          placeholder: String? = nil,
          isEditable: Bool = true,
-         isScrollable: Bool = true,
+         isScrollable: Bool = false,
+         isSelectable: Bool = true,
          lineLimit: Int = 0,
          font: NSFont,
          canHaveNewLineCharacters: Bool = true,
@@ -34,6 +36,7 @@ struct TextView: NSViewRepresentable {
         self.placeholder = placeholder
         self.isEditable = isEditable
         self.isScrollable = isScrollable
+        self.isSelectable = isSelectable
         self.lineLimit = lineLimit
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.focusesNextKeyViewByTabKey = focusesNextKeyViewByTabKey
@@ -126,6 +129,9 @@ struct TextView: NSViewRepresentable {
         }
         if textView.isEditable != isEditable {
             textView.isEditable = isEditable
+        }
+        if textView.isSelectable != isSelectable {
+            textView.isSelectable = isSelectable
         }
         if textView.textContainer?.maximumNumberOfLines != lineLimit {
             textView.textContainer?.maximumNumberOfLines = lineLimit

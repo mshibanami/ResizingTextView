@@ -9,6 +9,7 @@ public struct ResizingTextView: View, Equatable {
     var placeholder: String?
     var isEditable: Bool
     var isScrollable: Bool
+    var isSelectable: Bool
     var lineLimit: Int?
     var font: UXFont = .preferredFont(forTextStyle: .body)
     var canHaveNewLineCharacters: Bool
@@ -36,6 +37,7 @@ public struct ResizingTextView: View, Equatable {
         placeholder: String? = nil,
         isEditable: Bool = true,
         isScrollable: Bool = false,
+        isSelectable: Bool = true,
         lineLimit: Int? = nil,
         canHaveNewLineCharacters: Bool = true,
         hasGreedyWidth: Bool = true
@@ -44,6 +46,7 @@ public struct ResizingTextView: View, Equatable {
         self.placeholder = placeholder
         self.isEditable = isEditable
         self.isScrollable = isScrollable
+        self.isSelectable = isSelectable
         self.lineLimit = lineLimit
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.hasGreedyWidth = hasGreedyWidth
@@ -81,6 +84,7 @@ public struct ResizingTextView: View, Equatable {
             placeholder: placeholder,
             isEditable: isEditable,
             isScrollable: isScrollable,
+            isSelectable: isSelectable,
             lineLimit: lineLimit ?? .max,
             font: font,
             canHaveNewLineCharacters: canHaveNewLineCharacters,
@@ -115,6 +119,7 @@ public struct ResizingTextView: View, Equatable {
                 $text,
                 isEditable: isEditable,
                 isScrollable: isScrollable,
+                isSelectable: isSelectable,
                 lineLimit: lineLimit ?? .max,
                 font: font,
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
@@ -137,6 +142,7 @@ public struct ResizingTextView: View, Equatable {
         && lhs.placeholder == rhs.placeholder
         && lhs.isEditable == rhs.isEditable
         && lhs.isScrollable == rhs.isScrollable
+        && lhs.isSelectable == rhs.isSelectable
         && lhs.lineLimit == rhs.lineLimit
         && lhs.font == rhs.font
         && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters

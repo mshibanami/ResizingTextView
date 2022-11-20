@@ -10,6 +10,7 @@ struct TextView: UIViewRepresentable {
     @Binding private var text: String
     private var isEditable: Bool
     private var isScrollable: Bool
+    private var isSelectable: Bool
     private var lineLimit: Int
     private var foregroundColor: Color
     private var font: UIFont
@@ -18,7 +19,8 @@ struct TextView: UIViewRepresentable {
 
     init(_ text: Binding<String>,
          isEditable: Bool = true,
-         isScrollable: Bool = true,
+         isScrollable: Bool = false,
+         isSelectable: Bool = true,
          lineLimit: Int = 0,
          font: UIFont,
          canHaveNewLineCharacters: Bool = true,
@@ -26,6 +28,7 @@ struct TextView: UIViewRepresentable {
         self._text = text
         self.isEditable = isEditable
         self.isScrollable = isScrollable
+        self.isSelectable = isSelectable
         self.lineLimit = lineLimit
         self.foregroundColor = foregroundColor
         self.font = font
@@ -60,6 +63,9 @@ struct TextView: UIViewRepresentable {
         }
         if view.isEditable != isEditable {
             view.isEditable = isEditable
+        }
+        if view.isSelectable != isSelectable {
+            view.isSelectable = isSelectable
         }
         if view.textContainer.maximumNumberOfLines != lineLimit {
             view.textContainer.maximumNumberOfLines = lineLimit

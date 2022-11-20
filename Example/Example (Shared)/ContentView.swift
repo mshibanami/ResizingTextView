@@ -42,7 +42,7 @@ struct ContentView: View {
                 .font(.boldSystemFont(ofSize: 16))
                 .foregroundColor(.magenta)
                 .padding(.bottom, 20)
-                
+
                 Text("Uneditable, selectable, max 2 lines")
                     .bold()
                 ResizingTextView(
@@ -50,8 +50,15 @@ struct ContentView: View {
                     isEditable: false,
                     lineLimit: 2)
                 .padding(.bottom, 20)
-                
-                Spacer()
+
+                Text("Uneditable, unselectable, max 2 lines")
+                    .bold()
+                ResizingTextView(
+                    text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
+                    isEditable: false,
+                    isSelectable: false,
+                    lineLimit: 2)
+                .padding(.bottom, 20)
             }
             .padding()
         }
