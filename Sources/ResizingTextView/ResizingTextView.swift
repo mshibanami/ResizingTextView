@@ -54,19 +54,29 @@ public struct ResizingTextView: View, Equatable {
     
     public var body: some View {
 #if os(macOS)
-        macInvisibleSizingText
+        invisibleSizingText
             .overlay(visibleTextViewWrapper)
 #elseif os(iOS)
-        visibleTextViewWrapper
+        if hasGreedyWidth {
+            visibleTextViewWrapper
+        } else {
+            invisibleSizingText
+                .overlay(visibleTextViewWrapper)
+        }
 #endif
     }
-    
-    private var macInvisibleSizingText: some View {
+
+    var invisibleSizingText: some View {
         Text(text.isEmpty ? " " : text)
             .lineLimit(lineLimit ?? .max)
+#if os(macOS)
             .padding(.vertical, isEditable ? 8 : 0)
             .padding(.horizontal, isEditable ? 9 : 0)
             .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
+#elseif os(iOS)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 5)
+#endif
             .opacity(0)
             .font(Font(font))
             .frame(
@@ -123,7 +133,6 @@ public struct ResizingTextView: View, Equatable {
                 font: font,
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor))
-            .frame(maxHeight: .infinity)
 
             if let placeholder {
                 Text(placeholder)
