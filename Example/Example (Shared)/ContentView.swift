@@ -21,11 +21,12 @@ struct ContentView: View {
                 ResizingTextView(text: $text1)
                     .padding(.bottom, 20)
                 
-                Text("Fixed height, newline characters not allowed")
+                Text("Fixed height, scrollable, newline characters not allowed")
                     .bold()
                 ResizingTextView(
                     text: $text2,
                     placeholder: "Placeholder",
+                    isScrollable: true,
                     canHaveNewLineCharacters: false)
                 .frame(height: 50)
                 .padding(.bottom, 20)
