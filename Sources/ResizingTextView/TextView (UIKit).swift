@@ -86,7 +86,7 @@ struct TextView: UIViewRepresentable {
         Coordinator(self)
     }
 
-    class Coordinator: NSObject, UITextViewDelegate {
+    final class Coordinator: NSObject, UITextViewDelegate {
         var parent: TextView
         var selectedRange: NSRange?
 

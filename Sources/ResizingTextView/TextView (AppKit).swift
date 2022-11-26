@@ -151,7 +151,7 @@ struct TextView: NSViewRepresentable {
         Coordinator(self)
     }
 
-    class Coordinator: NSObject, NSTextViewDelegate {
+    final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: TextView
         var selectedRanges = [NSValue]()
 
