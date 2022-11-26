@@ -9,31 +9,27 @@ import SwiftUI
 import ResizingTextView
 
 struct ContentView: View {
-    @State var text1 = "hello"
+    @State var text1 = ""
     @State var text2 = ""
     @State var text3 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                Text("Resizing automatically")
+                Text("Resizing automatically (Default)")
                     .bold()
-                ResizingTextView(
-                    text: $text1,
-                    isScrollable: true,
-                    canHaveNewLineCharacters: true)
-                .padding(.bottom, 20)
+                ResizingTextView(text: $text1)
+                    .padding(.bottom, 20)
                 
-                Text("Fixed-height, newline characters not allowed")
+                Text("Fixed height, newline characters not allowed")
                     .bold()
                 ResizingTextView(
                     text: $text2,
                     placeholder: "Placeholder",
-                    isScrollable: true,
                     canHaveNewLineCharacters: false)
                 .frame(height: 50)
                 .padding(.bottom, 20)
-                
+
                 Text("Uneditable, selectable, color/font changed")
                     .bold()
                 ResizingTextView(
