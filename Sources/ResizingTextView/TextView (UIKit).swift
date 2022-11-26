@@ -47,6 +47,7 @@ struct TextView: UIViewRepresentable {
         let view = CustomTextView()
         view.backgroundColor = .clear
         view.delegate = context.coordinator
+        view.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return view
     }
 
