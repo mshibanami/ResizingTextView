@@ -53,21 +53,20 @@ public struct ResizingTextView: View, Equatable {
     }
     
     public var body: some View {
-        invisibleSizingText
+#if os(macOS)
+        macInvisibleSizingText
             .overlay(visibleTextViewWrapper)
+#elseif os(iOS)
+        visibleTextViewWrapper
+#endif
     }
     
-    var invisibleSizingText: some View {
+    private var macInvisibleSizingText: some View {
         Text(text.isEmpty ? " " : text)
             .lineLimit(lineLimit ?? .max)
-#if os(macOS)
             .padding(.vertical, isEditable ? 8 : 0)
             .padding(.horizontal, isEditable ? 9 : 0)
             .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
-#elseif os(iOS)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 5)
-#endif
             .opacity(0)
             .font(Font(font))
             .frame(
@@ -77,7 +76,7 @@ public struct ResizingTextView: View, Equatable {
             .layoutPriority(1)
     }
     
-    var visibleTextViewWrapper: some View {
+    private var visibleTextViewWrapper: some View {
 #if os(macOS)
         TextView(
             $text,
@@ -124,14 +123,16 @@ public struct ResizingTextView: View, Equatable {
                 font: font,
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor))
-            
-            if text.isEmpty, let placeholder = placeholder {
+            .frame(maxHeight: .infinity)
+
+            if let placeholder {
                 Text(placeholder)
                     .font(Font(font))
                     .foregroundColor(Color(foregroundColor.withAlphaComponent(0.2)))
                     .padding(.leading, 5)
-                    .padding(.top, 9)
+                    .padding(.vertical, 8)
                     .allowsHitTesting(false)
+                    .opacity(text.isEmpty ? 1 : 0)
             }
         }
 #endif
