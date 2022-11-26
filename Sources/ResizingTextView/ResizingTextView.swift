@@ -137,6 +137,7 @@ public struct ResizingTextView: View, Equatable {
             if let placeholder {
                 Text(placeholder)
                     .font(Font(font))
+                    .lineLimit(1)
                     .foregroundColor(Color(foregroundColor.withAlphaComponent(0.2)))
                     .padding(.leading, 5)
                     .padding(.vertical, 8)
