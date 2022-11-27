@@ -52,9 +52,13 @@ struct TextView: UIViewRepresentable {
     }
 
     func updateUIView(_ view: CustomTextView, context: Context) {
+        var needsInvalidateIntrinsicContentSize = false
+
         view.hasDynamicHeight = !isScrollable
+
         if view.text != text {
             view.text = text
+            needsInvalidateIntrinsicContentSize = needsInvalidateIntrinsicContentSize || !isScrollable
         }
         if view.font != font {
             view.font = font
@@ -81,6 +85,10 @@ struct TextView: UIViewRepresentable {
                 view.selectedRange = selectedRange
             }
         }
+
+        if needsInvalidateIntrinsicContentSize {
+            view.invalidateIntrinsicContentSize()
+        }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -102,6 +110,7 @@ struct TextView: UIViewRepresentable {
             }
             if parent.text != textView.text {
                 parent.text = textView.text
+                textView.invalidateIntrinsicContentSize()
             }
             if selectedRange != textView.selectedRange {
                 selectedRange = textView.selectedRange
