@@ -115,13 +115,14 @@ struct TextView: UIViewRepresentable {
                textView.text.contains(where: { $0 == "\n" }) {
                 textView.text.removeAll(where: { $0 == "\n" })
             }
-            if parent.text != textView.text {
-                parent.text = textView.text
-                textView.invalidateIntrinsicContentSize()
-            }
+
+            parent.text = textView.text
+
             if selectedRange != textView.selectedRange {
                 selectedRange = textView.selectedRange
             }
+
+            textView.invalidateIntrinsicContentSize()
         }
     }
 }
