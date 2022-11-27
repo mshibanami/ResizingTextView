@@ -45,9 +45,11 @@ struct TextView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> CustomTextView {
         let view = CustomTextView()
-        view.backgroundColor = .clear
-        view.delegate = context.coordinator
         view.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        view.textContainer.lineFragmentPadding = 0
+        view.backgroundColor = .clear
+        view.clipsToBounds = false
+        view.delegate = context.coordinator
         return view
     }
 
