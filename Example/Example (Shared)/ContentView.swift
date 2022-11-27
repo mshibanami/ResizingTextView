@@ -15,7 +15,7 @@ struct ContentView: View {
     
     var body: some View {
         List {
-            let textBackgroundColor = Color(UIColor.secondarySystemBackground)
+            let textBackgroundColor = Color.black.opacity(0.1)
 
             Section("Resizing automatically (Default)") {
                 ResizingTextView(text: $text1)
@@ -58,7 +58,7 @@ struct ContentView: View {
                 .background(textBackgroundColor)
             }
 
-            Section("Unselectable, non-greedy short label") {
+            Section("Selectable, uneditable, non-greedy short label") {
                 ResizingTextView(
                     text: .constant("Lorem ipsum"),
                     isEditable: false,

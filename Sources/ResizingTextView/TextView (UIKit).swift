@@ -58,7 +58,7 @@ struct TextView: UIViewRepresentable {
 
         if view.text != text {
             view.text = text
-            needsInvalidateIntrinsicContentSize = needsInvalidateIntrinsicContentSize || !isScrollable
+            needsInvalidateIntrinsicContentSize = true
         }
         if view.font != font {
             view.font = font
@@ -86,7 +86,12 @@ struct TextView: UIViewRepresentable {
             }
         }
 
-        if needsInvalidateIntrinsicContentSize {
+        if !isEditable {
+            view.textContainerInset = .zero
+            needsInvalidateIntrinsicContentSize = true
+        }
+
+        if needsInvalidateIntrinsicContentSize && !isScrollable {
             view.invalidateIntrinsicContentSize()
         }
     }

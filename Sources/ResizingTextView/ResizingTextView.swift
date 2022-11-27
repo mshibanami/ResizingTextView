@@ -74,15 +74,16 @@ public struct ResizingTextView: View, Equatable {
             .padding(.horizontal, isEditable ? 9 : 0)
             .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
 #elseif os(iOS)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 5)
+            .padding(.top, isEditable ? 8 : 2)
+            .padding(.bottom, isEditable ? 8 : 3)
 #endif
-            .opacity(0)
+            .foregroundColor(Color.pink)
             .font(Font(font))
             .frame(
                 maxWidth: hasGreedyWidth ? .infinity : nil,
                 maxHeight: (isEditable && isScrollable) ? .infinity : nil,
                 alignment: .leading)
+            .opacity(0)
             .layoutPriority(1)
     }
     
@@ -139,7 +140,6 @@ public struct ResizingTextView: View, Equatable {
                     .font(Font(font))
                     .lineLimit(1)
                     .foregroundColor(Color(foregroundColor.withAlphaComponent(0.2)))
-                    .padding(.leading, 5)
                     .padding(.vertical, 8)
                     .allowsHitTesting(false)
                     .opacity(text.isEmpty ? 1 : 0)
