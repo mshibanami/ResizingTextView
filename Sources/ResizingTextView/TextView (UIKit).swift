@@ -49,6 +49,7 @@ struct TextView: UIViewRepresentable {
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.delegate = context.coordinator
+        updateUIView(view, context: context)
         return view
     }
 
