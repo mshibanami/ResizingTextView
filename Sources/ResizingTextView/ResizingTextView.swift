@@ -4,7 +4,7 @@ import Foundation
 import SwiftUI
 import Combine
 
-public struct ResizingTextView: View, Equatable {
+public struct ResizingTextView: View {
     @Binding var text: String
     var placeholder: String?
     var isEditable: Bool
@@ -146,24 +146,6 @@ public struct ResizingTextView: View, Equatable {
             }
         }
 #endif
-    }
-    
-    public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
-        var result = lhs.text == rhs.text
-        && lhs.placeholder == rhs.placeholder
-        && lhs.isEditable == rhs.isEditable
-        && lhs.isScrollable == rhs.isScrollable
-        && lhs.isSelectable == rhs.isSelectable
-        && lhs.lineLimit == rhs.lineLimit
-        && lhs.font == rhs.font
-        && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
-        && lhs.foregroundColor == rhs.foregroundColor
-        && lhs.hasGreedyWidth == rhs.hasGreedyWidth
-        && lhs.isFocused == rhs.isFocused
-#if os(macOS)
-        result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
-#endif
-        return result
     }
 }
 
