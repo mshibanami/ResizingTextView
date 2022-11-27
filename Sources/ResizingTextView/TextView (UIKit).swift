@@ -48,7 +48,6 @@ struct TextView: UIViewRepresentable {
         view.setContentHuggingPriority(.defaultHigh, for: .vertical)
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
-        view.clipsToBounds = false
         view.delegate = context.coordinator
         return view
     }
@@ -57,6 +56,7 @@ struct TextView: UIViewRepresentable {
         var needsInvalidateIntrinsicContentSize = false
 
         view.hasDynamicHeight = !isScrollable
+        view.clipsToBounds = isScrollable
 
         if view.text != text {
             view.text = text
