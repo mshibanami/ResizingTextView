@@ -18,6 +18,8 @@ public struct ResizingTextView: View, Equatable {
 #if os(macOS)
     var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
+#elseif os(iOS)
+    var autocapitalizationType: UITextAutocapitalizationType = .sentences
 #endif
     
 #if os(macOS)
@@ -133,8 +135,8 @@ public struct ResizingTextView: View, Equatable {
                 lineLimit: lineLimit ?? .max,
                 font: font,
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
-                foregroundColor: Color(foregroundColor))
-
+                foregroundColor: Color(foregroundColor),
+                autocapitalizationType: autocapitalizationType)
             if let placeholder {
                 Text(placeholder)
                     .font(Font(font))
@@ -162,6 +164,8 @@ public struct ResizingTextView: View, Equatable {
         && lhs.isFocused == rhs.isFocused
 #if os(macOS)
         result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
+#elseif os(iOS)
+        result = result && lhs.autocapitalizationType == rhs.autocapitalizationType
 #endif
         return result
     }
@@ -203,6 +207,12 @@ public extension ResizingTextView {
     func font(_ font: UIFont) -> Self {
         var newSelf = self
         newSelf.font = font
+        return newSelf
+    }
+    
+    func autocapitalizationType(_ autocapitalizationType: UITextAutocapitalizationType) -> Self {
+        var newSelf = self
+        newSelf.autocapitalizationType = autocapitalizationType
         return newSelf
     }
 #endif

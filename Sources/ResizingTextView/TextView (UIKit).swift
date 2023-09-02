@@ -16,15 +16,17 @@ struct TextView: UIViewRepresentable {
     private var font: UIFont
     private var canHaveNewLineCharacters: Bool
     private var width: CGFloat?
+    private var autocapitalizationType: UITextAutocapitalizationType
 
     init(_ text: Binding<String>,
-         isEditable: Bool = true,
-         isScrollable: Bool = false,
-         isSelectable: Bool = true,
-         lineLimit: Int = 0,
+         isEditable: Bool,
+         isScrollable: Bool,
+         isSelectable: Bool,
+         lineLimit: Int,
          font: UIFont,
-         canHaveNewLineCharacters: Bool = true,
-         foregroundColor: Color = defaultForegroundColor) {
+         canHaveNewLineCharacters: Bool,
+         foregroundColor: Color,
+         autocapitalizationType: UITextAutocapitalizationType) {
         self._text = text
         self.isEditable = isEditable
         self.isScrollable = isScrollable
@@ -33,14 +35,7 @@ struct TextView: UIViewRepresentable {
         self.foregroundColor = foregroundColor
         self.font = font
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
-    }
-
-    init(text: String) {
-        self.init(
-            Binding<String>.constant(text),
-            isEditable: false,
-            font: UIFont.preferredFont(forTextStyle: .body),
-            foregroundColor: Self.defaultForegroundColor)
+        self.autocapitalizationType = autocapitalizationType
     }
 
     func makeUIView(context: Context) -> CustomTextView {
@@ -77,6 +72,9 @@ struct TextView: UIViewRepresentable {
         }
         if view.textContainer.maximumNumberOfLines != lineLimit {
             view.textContainer.maximumNumberOfLines = lineLimit
+        }
+        if view.autocapitalizationType != autocapitalizationType {
+            view.autocapitalizationType = autocapitalizationType
         }
         if lineLimit > 0 {
             if view.textContainer.lineBreakMode != .byTruncatingTail {

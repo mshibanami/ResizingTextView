@@ -12,6 +12,7 @@ struct ContentView: View {
     @State var text1 = ""
     @State var text2 = ""
     @State var text3 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    @State var text4 = ""
     
     var body: some View {
         List {
@@ -63,6 +64,14 @@ struct ContentView: View {
                     text: .constant("Lorem ipsum"),
                     isEditable: false,
                     hasGreedyWidth: false)
+                .background(textBackgroundColor)
+            }
+            
+            Section("No autocapitalization") {
+                ResizingTextView(
+                    text: $text4,
+                    placeholder: "Placeholder")
+                .autocapitalizationType(.none)
                 .background(textBackgroundColor)
             }
         }
