@@ -18,8 +18,10 @@ public struct ResizingTextView: View, Equatable {
 #if os(macOS)
     var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
+    var textContainerInset: CGSize?
 #elseif os(iOS)
     var autocapitalizationType: UITextAutocapitalizationType = .sentences
+    var textContainerInset: UIEdgeInsets?
 #endif
     
 #if os(macOS)
@@ -113,7 +115,8 @@ public struct ResizingTextView: View, Equatable {
                     self.isFocused = false
                 }
             },
-            onInsertNewline: onInsertNewline
+            onInsertNewline: onInsertNewline,
+            textContainerInset: textContainerInset
         )
         .padding(.vertical, isEditable ? 8 : 0)
         .padding(.horizontal, isEditable ? 9 : 0)
@@ -136,7 +139,8 @@ public struct ResizingTextView: View, Equatable {
                 font: font,
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor),
-                autocapitalizationType: autocapitalizationType)
+                autocapitalizationType: autocapitalizationType,
+                textContainerInset: textContainerInset)
             if let placeholder {
                 Text(placeholder)
                     .font(Font(font))

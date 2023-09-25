@@ -18,19 +18,21 @@ struct TextView: NSViewRepresentable {
     var foregroundColor: Color
     var onFocusChanged: ((Bool) -> Void)?
     var onInsertNewline: (() -> Bool)?
+    var textContainerInset: CGSize
 
     init(_ text: Binding<String>,
-         placeholder: String? = nil,
-         isEditable: Bool = true,
-         isScrollable: Bool = false,
-         isSelectable: Bool = true,
-         lineLimit: Int = 0,
+         placeholder: String?,
+         isEditable: Bool,
+         isScrollable: Bool,
+         isSelectable: Bool,
+         lineLimit: Int,
          font: NSFont,
-         canHaveNewLineCharacters: Bool = true,
-         focusesNextKeyViewByTabKey: Bool = true,
-         foregroundColor: Color = defaultForegroundColor,
-         onFocusChanged: ((Bool) -> Void)? = nil,
-         onInsertNewline: (() -> Bool)? = nil
+         canHaveNewLineCharacters: Bool,
+         focusesNextKeyViewByTabKey: Bool,
+         foregroundColor: Color?,
+         onFocusChanged: ((Bool) -> Void)?,
+         onInsertNewline: (() -> Bool)?,
+         textContainerInset: CGSize?
     ) {
         self._text = text
         self.placeholder = placeholder
@@ -40,23 +42,16 @@ struct TextView: NSViewRepresentable {
         self.lineLimit = lineLimit
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.focusesNextKeyViewByTabKey = focusesNextKeyViewByTabKey
-        self.foregroundColor = foregroundColor
+        self.foregroundColor = foregroundColor ?? Self.defaultForegroundColor
         self.font = font
         self.onFocusChanged = onFocusChanged
         self.onInsertNewline = onInsertNewline
-    }
-
-    init(text: String) {
-        self.init(
-            Binding<String>.constant(text),
-            isEditable: false,
-            font: NSFont.preferredFont(forTextStyle: .body),
-            foregroundColor: Self.defaultForegroundColor)
+        self.textContainerInset = textContainerInset ?? CGSize(width: -5, height: 0)
     }
 
     func makeNSView(context: Context) -> TextEnclosingScrollView {
         let textView = CustomTextView()
-        textView.textContainerInset = .init(width: -5, height: 0)
+        textView.textContainerInset = textContainerInset
         textView.delegate = context.coordinator
         textView.isRichText = false
         textView.allowsUndo = true
