@@ -17,6 +17,7 @@ struct TextView: UIViewRepresentable {
     private var canHaveNewLineCharacters: Bool
     private var width: CGFloat?
     private var autocapitalizationType: UITextAutocapitalizationType
+    private var textContainerInset: UIEdgeInsets
 
     init(_ text: Binding<String>,
          isEditable: Bool,
@@ -26,7 +27,8 @@ struct TextView: UIViewRepresentable {
          font: UIFont,
          canHaveNewLineCharacters: Bool,
          foregroundColor: Color,
-         autocapitalizationType: UITextAutocapitalizationType) {
+         autocapitalizationType: UITextAutocapitalizationType,
+         textContainerInset: UIEdgeInsets?) {
         self._text = text
         self.isEditable = isEditable
         self.isScrollable = isScrollable
@@ -36,6 +38,10 @@ struct TextView: UIViewRepresentable {
         self.font = font
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.autocapitalizationType = autocapitalizationType
+        
+        // HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this default value to the insets.
+        let defaultTextContainerInset = UIEdgeInsets(top: 0.00000001, left: 0.00000001, bottom: 0.00000001, right: 0.00000001)
+        self.textContainerInset = textContainerInset ?? defaultTextContainerInset
     }
 
     func makeUIView(context: Context) -> CustomTextView {
@@ -88,7 +94,7 @@ struct TextView: UIViewRepresentable {
         }
 
         if !isEditable {
-            view.textContainerInset = .zero
+            view.textContainerInset = textContainerInset
             needsInvalidateIntrinsicContentSize = true
         }
 
