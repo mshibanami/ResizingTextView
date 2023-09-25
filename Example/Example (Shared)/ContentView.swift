@@ -67,6 +67,7 @@ struct ContentView: View {
                 .background(textBackgroundColor)
             }
             
+#if os(iOS)
             Section("No autocapitalization") {
                 ResizingTextView(
                     text: $text4,
@@ -74,6 +75,7 @@ struct ContentView: View {
                 .autocapitalizationType(.none)
                 .background(textBackgroundColor)
             }
+#endif
         }
     }
 }
