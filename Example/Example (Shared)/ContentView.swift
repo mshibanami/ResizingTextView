@@ -5,8 +5,8 @@
 //  Created by Manabu Nakazawa on 27/8/2022.
 //
 
-import SwiftUI
 import ResizingTextView
+import SwiftUI
 
 struct ContentView: View {
     @State var text1 = ""
@@ -15,68 +15,87 @@ struct ContentView: View {
     @State var text4 = ""
     
     var body: some View {
-        List {
-            let textBackgroundColor = Color.black.opacity(0.1)
-
-            Section("Resizing automatically (Default)") {
-                ResizingTextView(text: $text1)
-                    .background(textBackgroundColor)
-            }
-
-            Section("Fixed height, scrollable, newline characters not allowed") {
-                ResizingTextView(
-                    text: $text2,
-                    placeholder: "Placeholder",
-                    isScrollable: true,
-                    canHaveNewLineCharacters: false)
-                .frame(height: 80)
-                .background(textBackgroundColor)
-            }
-
-            Section("Uneditable, selectable, color/font changed") {
-                ResizingTextView(
-                    text: $text3,
-                    isEditable: false)
-                .font(.boldSystemFont(ofSize: 16))
-                .foregroundColor(.magenta)
-                .background(textBackgroundColor)
-            }
-
-            Section("Uneditable, selectable, max 2 lines") {
-                ResizingTextView(
-                    text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
-                    isEditable: false,
-                    lineLimit: 2)
-                .background(textBackgroundColor)
-            }
-
-            Section("Uneditable, unselectable, max 2 lines") {
-                ResizingTextView(
-                    text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
-                    isEditable: false,
-                    isSelectable: false,
-                    lineLimit: 2)
-                .background(textBackgroundColor)
-            }
-
-            Section("Selectable, uneditable, non-greedy short label") {
-                ResizingTextView(
-                    text: .constant("Lorem ipsum"),
-                    isEditable: false,
-                    hasGreedyWidth: false)
-                .background(textBackgroundColor)
-            }
-            
+        ScrollView {
+            VStack {
+                ExampleSection("Resizing automatically (Default)") {
+                    ResizingTextView(text: $text1)
+                }
+                
+                ExampleSection("Fixed height, scrollable, newline characters not allowed") {
+                    ResizingTextView(
+                        text: $text2,
+                        placeholder: "Placeholder",
+                        isScrollable: true,
+                        canHaveNewLineCharacters: false
+                    )
+                    .frame(height: 80)
+                }
+                
+                ExampleSection("Uneditable, selectable, color/font changed") {
+                    ResizingTextView(
+                        text: $text3,
+                        isEditable: false
+                    )
+                    .font(.boldSystemFont(ofSize: 16))
+                    .foregroundColor(.magenta)
+                }
+                
+                ExampleSection("Uneditable, selectable, max 2 lines") {
+                    ResizingTextView(
+                        text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
+                        isEditable: false,
+                        lineLimit: 2
+                    )
+                }
+                
+                ExampleSection("Uneditable, unselectable, max 2 lines") {
+                    ResizingTextView(
+                        text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
+                        isEditable: false,
+                        isSelectable: false,
+                        lineLimit: 2
+                    )
+                }
+                
+                ExampleSection("Selectable, uneditable, non-greedy short label") {
+                    ResizingTextView(
+                        text: .constant("Lorem ipsum"),
+                        isEditable: false,
+                        hasGreedyWidth: false
+                    )
+                }
 #if os(iOS)
-            Section("No autocapitalization") {
-                ResizingTextView(
-                    text: $text4,
-                    placeholder: "Placeholder")
-                .autocapitalizationType(.none)
-                .background(textBackgroundColor)
-            }
+                ExampleSection("No autocapitalization") {
+                    ResizingTextView(
+                        text: $text4,
+                        placeholder: "Placeholder"
+                    )
+                    .autocapitalizationType(.none)
+                }
 #endif
+            }
+            .scenePadding()
         }
+    }
+}
+
+private struct ExampleSection<Content: View>: View {
+    var title: String
+    @ViewBuilder var content: () -> Content
+    
+    init(_ title: String, content: @escaping () -> Content) {
+        self.title = title
+        self.content = content
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.headline.bold())
+            content()
+        }
+        .padding(.bottom, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
