@@ -118,10 +118,13 @@ public struct ResizingTextView: View, Equatable {
                 }
             },
             onInsertNewline: onInsertNewline,
-            textContainerInset: textContainerInset
+            textContainerInset: textContainerInset ?? {
+                var inset = CGSize(width: -5, height: 0)
+                inset.width += (isEditable ? 9 : 0)
+                inset.height += (isEditable ? 8 : 0)
+                return inset
+            }()
         )
-        .padding(.vertical, isEditable ? 8 : 0)
-        .padding(.horizontal, isEditable ? 9 : 0)
         .background(isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
         .roundedFilledBorder(
             isEditable ? Color(UXColor.separatorColor) : .clear,
