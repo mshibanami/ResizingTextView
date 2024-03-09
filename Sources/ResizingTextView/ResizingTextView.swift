@@ -207,6 +207,12 @@ public extension ResizingTextView {
         newSelf.font = font
         return newSelf
     }
+    
+    func textContainerInset(_ inset: CGSize?) -> Self {
+        var newSelf = self
+        newSelf.textContainerInset = inset
+        return newSelf
+    }
 
 #elseif os(iOS)
     func foregroundColor(_ color: UIColor) -> Self {
@@ -224,6 +230,12 @@ public extension ResizingTextView {
     func autocapitalizationType(_ autocapitalizationType: UITextAutocapitalizationType) -> Self {
         var newSelf = self
         newSelf.autocapitalizationType = autocapitalizationType
+        return newSelf
+    }
+    
+    func textContainerInset(_ inset: UIEdgeInsets?) -> Self {
+        var newSelf = self
+        newSelf.textContainerInset = inset
         return newSelf
     }
 #endif

@@ -52,7 +52,6 @@ struct TextView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> TextEnclosingScrollView {
         let textView = CustomTextView()
-        textView.textContainerInset = textContainerInset
         textView.delegate = context.coordinator
         textView.isRichText = false
         textView.allowsUndo = true
@@ -129,6 +128,9 @@ struct TextView: NSViewRepresentable {
         }
         if textView.isSelectable != isSelectable {
             textView.isSelectable = isSelectable
+        }
+        if textView.textContainerInset != textContainerInset {
+            textView.textContainerInset = textContainerInset
         }
         if textView.textContainer?.maximumNumberOfLines != lineLimit {
             textView.textContainer?.maximumNumberOfLines = lineLimit

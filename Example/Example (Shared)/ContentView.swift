@@ -13,6 +13,7 @@ struct ContentView: View {
     @State var text2 = ""
     @State var text3 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
     @State var text4 = ""
+    @State var text5 = "I have greater horizontal padding than the others."
     
     var body: some View {
         ScrollView {
@@ -73,6 +74,17 @@ struct ContentView: View {
                     .autocapitalizationType(.none)
                 }
 #endif
+                ExampleSection("Customized textContentInset") {
+                    ResizingTextView(
+                        text: $text5,
+                        placeholder: ""
+                    )
+#if os(macOS)
+                    .textContainerInset(CGSize(width: 40, height: 10))
+#elseif os(iOS)
+                    .textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
+#endif
+                }
             }
             .scenePadding()
         }
