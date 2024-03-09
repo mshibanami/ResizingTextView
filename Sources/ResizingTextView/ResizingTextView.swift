@@ -125,10 +125,6 @@ public struct ResizingTextView: View, Equatable {
                 return inset
             }()
         )
-#if os(iOS)
-        .padding(.vertical, isEditable ? 8 : 0)
-        .padding(.horizontal, isEditable ? 9 : 0)
-#endif
         .background(isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
         .roundedFilledBorder(
             isEditable ? Color(UXColor.separatorColor) : .clear,
