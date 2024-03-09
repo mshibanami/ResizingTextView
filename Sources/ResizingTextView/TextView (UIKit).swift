@@ -1,8 +1,8 @@
 //  Copyright © 2022 Manabu Nakazawa. All rights reserved.
 
 #if os(iOS)
-import UIKit
 import SwiftUI
+import UIKit
 
 struct TextView: UIViewRepresentable {
     static let defaultForegroundColor = Color(UIColor.label)
@@ -19,16 +19,18 @@ struct TextView: UIViewRepresentable {
     private var autocapitalizationType: UITextAutocapitalizationType
     private var textContainerInset: UIEdgeInsets
 
-    init(_ text: Binding<String>,
-         isEditable: Bool,
-         isScrollable: Bool,
-         isSelectable: Bool,
-         lineLimit: Int,
-         font: UIFont,
-         canHaveNewLineCharacters: Bool,
-         foregroundColor: Color,
-         autocapitalizationType: UITextAutocapitalizationType,
-         textContainerInset: UIEdgeInsets?) {
+    init(
+        _ text: Binding<String>,
+        isEditable: Bool,
+        isScrollable: Bool,
+        isSelectable: Bool,
+        lineLimit: Int,
+        font: UIFont,
+        canHaveNewLineCharacters: Bool,
+        foregroundColor: Color,
+        autocapitalizationType: UITextAutocapitalizationType,
+        textContainerInset: UIEdgeInsets?
+    ) {
         self._text = text
         self.isEditable = isEditable
         self.isScrollable = isScrollable
@@ -98,7 +100,7 @@ struct TextView: UIViewRepresentable {
             needsInvalidateIntrinsicContentSize = true
         }
 
-        if needsInvalidateIntrinsicContentSize && !isScrollable {
+        if needsInvalidateIntrinsicContentSize, !isScrollable {
             view.invalidateIntrinsicContentSize()
         }
     }
@@ -146,6 +148,7 @@ class CustomTextView: UITextView {
         isScrollEnabled = true
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -160,8 +163,8 @@ class CustomTextView: UITextView {
 
     override open var intrinsicContentSize: CGSize {
         return hasDynamicHeight
-        ? contentSize
-        : super.intrinsicContentSize
+            ? contentSize
+            : super.intrinsicContentSize
     }
 }
 #endif

@@ -3,7 +3,7 @@
 import SwiftUI
 
 extension View {
-    func roundedFilledBorder<S>(_ content: S, width: CGFloat, cornerRadius: CGFloat) -> some View where S: ShapeStyle {
+    func roundedFilledBorder(_ content: some ShapeStyle, width: CGFloat, cornerRadius: CGFloat) -> some View {
         let roundedRect = RoundedRectangle(cornerRadius: cornerRadius)
         return clipShape(roundedRect)
             .overlay(roundedRect.strokeBorder(content, lineWidth: width))

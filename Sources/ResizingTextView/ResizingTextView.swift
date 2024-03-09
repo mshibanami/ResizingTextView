@@ -1,8 +1,8 @@
 //  Copyright © 2022 Manabu Nakazawa. All rights reserved.
 
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 public struct ResizingTextView: View, Equatable {
     @Binding var text: String
@@ -28,6 +28,7 @@ public struct ResizingTextView: View, Equatable {
     public static var defaultLabelColor: NSColor {
         NSColor.labelColor
     }
+
 #elseif os(iOS)
     public static var defaultLabelColor: UIColor {
         UIColor.label
@@ -86,7 +87,8 @@ public struct ResizingTextView: View, Equatable {
             .frame(
                 maxWidth: hasGreedyWidth ? .infinity : nil,
                 maxHeight: (isEditable && isScrollable) ? .infinity : nil,
-                alignment: .leading)
+                alignment: .leading
+            )
             .opacity(0)
             .layoutPriority(1)
     }
@@ -124,7 +126,8 @@ public struct ResizingTextView: View, Equatable {
         .roundedFilledBorder(
             isEditable ? Color(UXColor.separatorColor) : .clear,
             width: isEditable ? 1 : 0,
-            cornerRadius: isEditable ? 10 : 0)
+            cornerRadius: isEditable ? 10 : 0
+        )
         .overlay(RoundedRectangle(cornerRadius: 10)
             .stroke(Color.accentColor.opacity(0.5), lineWidth: 4)
             .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
@@ -140,7 +143,8 @@ public struct ResizingTextView: View, Equatable {
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor),
                 autocapitalizationType: autocapitalizationType,
-                textContainerInset: textContainerInset)
+                textContainerInset: textContainerInset
+            )
             if let placeholder {
                 Text(placeholder)
                     .font(Font(font))
@@ -156,16 +160,16 @@ public struct ResizingTextView: View, Equatable {
     
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
         var result = lhs.text == rhs.text
-        && lhs.placeholder == rhs.placeholder
-        && lhs.isEditable == rhs.isEditable
-        && lhs.isScrollable == rhs.isScrollable
-        && lhs.isSelectable == rhs.isSelectable
-        && lhs.lineLimit == rhs.lineLimit
-        && lhs.font == rhs.font
-        && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
-        && lhs.foregroundColor == rhs.foregroundColor
-        && lhs.hasGreedyWidth == rhs.hasGreedyWidth
-        && lhs.isFocused == rhs.isFocused
+            && lhs.placeholder == rhs.placeholder
+            && lhs.isEditable == rhs.isEditable
+            && lhs.isScrollable == rhs.isScrollable
+            && lhs.isSelectable == rhs.isSelectable
+            && lhs.lineLimit == rhs.lineLimit
+            && lhs.font == rhs.font
+            && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
+            && lhs.foregroundColor == rhs.foregroundColor
+            && lhs.hasGreedyWidth == rhs.hasGreedyWidth
+            && lhs.isFocused == rhs.isFocused
 #if os(macOS)
         result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
 #elseif os(iOS)

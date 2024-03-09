@@ -20,19 +20,20 @@ struct TextView: NSViewRepresentable {
     var onInsertNewline: (() -> Bool)?
     var textContainerInset: CGSize
 
-    init(_ text: Binding<String>,
-         placeholder: String?,
-         isEditable: Bool,
-         isScrollable: Bool,
-         isSelectable: Bool,
-         lineLimit: Int,
-         font: NSFont,
-         canHaveNewLineCharacters: Bool,
-         focusesNextKeyViewByTabKey: Bool,
-         foregroundColor: Color?,
-         onFocusChanged: ((Bool) -> Void)?,
-         onInsertNewline: (() -> Bool)?,
-         textContainerInset: CGSize?
+    init(
+        _ text: Binding<String>,
+        placeholder: String?,
+        isEditable: Bool,
+        isScrollable: Bool,
+        isSelectable: Bool,
+        lineLimit: Int,
+        font: NSFont,
+        canHaveNewLineCharacters: Bool,
+        focusesNextKeyViewByTabKey: Bool,
+        foregroundColor: Color?,
+        onFocusChanged: ((Bool) -> Void)?,
+        onInsertNewline: (() -> Bool)?,
+        textContainerInset: CGSize?
     ) {
         self._text = text
         self.placeholder = placeholder
@@ -104,8 +105,9 @@ struct TextView: NSViewRepresentable {
                 string: placeholder,
                 attributes: [
                     .foregroundColor: NSColor.placeholderTextColor,
-                    .font: font
-                ])
+                    .font: font,
+                ]
+            )
         } else {
             textView.placeholderAttributedString = nil
         }
@@ -176,7 +178,7 @@ struct TextView: NSViewRepresentable {
         }
 
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            if (replacementString == "\n") && !parent.canHaveNewLineCharacters {
+            if replacementString == "\n", !parent.canHaveNewLineCharacters {
                 return false
             }
             return true
@@ -207,6 +209,7 @@ class TextEnclosingScrollView: NSScrollView {
         super.init(frame: .zero)
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
