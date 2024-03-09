@@ -33,7 +33,7 @@ struct TextView: NSViewRepresentable {
         foregroundColor: Color?,
         onFocusChanged: ((Bool) -> Void)?,
         onInsertNewline: (() -> Bool)?,
-        textContainerInset: CGSize?
+        textContainerInset: CGSize
     ) {
         self._text = text
         self.placeholder = placeholder
@@ -47,7 +47,7 @@ struct TextView: NSViewRepresentable {
         self.font = font
         self.onFocusChanged = onFocusChanged
         self.onInsertNewline = onInsertNewline
-        self.textContainerInset = textContainerInset ?? CGSize(width: -5, height: 0)
+        self.textContainerInset = textContainerInset
     }
 
     func makeNSView(context: Context) -> TextEnclosingScrollView {
@@ -138,6 +138,7 @@ struct TextView: NSViewRepresentable {
                 textView.textContainer?.lineBreakMode = .byTruncatingTail
             }
         }
+        
         if !context.coordinator.selectedRanges.isEmpty,
            textView.selectedRanges != context.coordinator.selectedRanges {
             textView.selectedRanges = context.coordinator.selectedRanges
