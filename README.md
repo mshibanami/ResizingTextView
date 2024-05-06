@@ -59,8 +59,7 @@ ResizingTextView(
 
 // Customized textContentInset
 ResizingTextView(
-    text: $text5,
-    placeholder: ""
+    text: $text5
 )
 #if os(macOS)
 .textContainerInset(CGSize(width: 40, height: 10))
