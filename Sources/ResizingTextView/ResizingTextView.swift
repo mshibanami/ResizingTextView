@@ -24,6 +24,8 @@ public struct ResizingTextView: View, Equatable {
     var textContainerInset: UIEdgeInsets?
 #endif
     
+    @Environment(\.layoutDirection) private var layoutDirection
+    
 #if os(macOS)
     public static var defaultLabelColor: NSColor {
         NSColor.labelColor
@@ -149,11 +151,15 @@ public struct ResizingTextView: View, Equatable {
                 textContainerInset: textContainerInset
             )
             if let placeholder {
+                let isLTR = layoutDirection == .leftToRight
                 Text(placeholder)
                     .font(Font(font))
                     .lineLimit(1)
                     .foregroundColor(Color(foregroundColor.withAlphaComponent(0.2)))
-                    .padding(.vertical, 8)
+                    .padding(.top, textContainerInset?.top ?? 0)
+                    .padding(isLTR ? .leading : .trailing, textContainerInset?.left ?? 0)
+                    .padding(.bottom, textContainerInset?.bottom ?? 0)
+                    .padding(isLTR ? .trailing : .leading, textContainerInset?.right ?? 0)
                     .allowsHitTesting(false)
                     .opacity(text.isEmpty ? 1 : 0)
             }
