@@ -18,7 +18,7 @@ struct ContentView: View {
     var body: some View {
         ScrollView {
             VStack {
-                ExampleSection("Resizing automatically (Default)") {
+                ExampleSection("Self-sizing automatically (Default)") {
                     ResizingTextView(text: $text1)
                 }
                 
@@ -58,12 +58,13 @@ struct ContentView: View {
                     )
                 }
                 
-                ExampleSection("Selectable, uneditable, non-greedy short label") {
+                ExampleSection("Selectable, uneditable, non greedy") {
                     ResizingTextView(
                         text: .constant("Lorem ipsum"),
                         isEditable: false,
                         hasGreedyWidth: false
                     )
+                    .background(.yellow)
                 }
 #if os(iOS)
                 ExampleSection("No autocapitalization") {
@@ -111,8 +112,6 @@ private struct ExampleSection<Content: View>: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+#Preview {
+    ContentView()
 }
