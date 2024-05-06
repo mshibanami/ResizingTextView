@@ -5,31 +5,69 @@ This is a SwiftUI resizing text view for iOS and macOS.
 ## Usage
 
 ```swift
-// Resizing automatically
-ResizingTextView(
-    text: $text1,
-    isScrollable: true,
-    canHaveNewLineCharacters: true)
+// Self-sizing automatically (Default)
+ResizingTextView(text: $text1)
 
-// Fixed-height, newline characters not allowed
+// Fixed height, scrollable, newline characters not allowed
 ResizingTextView(
     text: $text2,
     placeholder: "Placeholder",
     isScrollable: true,
-    canHaveNewLineCharacters: false)
+    canHaveNewLineCharacters: false
+)
+.frame(height: 80)
 
 // Uneditable, selectable, color/font changed
 ResizingTextView(
     text: $text3,
-    isEditable: false,
-    font: .boldSystemFont(ofSize: 16),
-    foregroundColor: .magenta)
+    isEditable: false
+)
+.font(.boldSystemFont(ofSize: 16))
+.foregroundColor(.magenta)
 
 // Uneditable, selectable, max 2 lines
 ResizingTextView(
     text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
     isEditable: false,
-    lineLimit: 2)
+    lineLimit: 2
+)
+
+// Uneditable, unselectable, max 2 lines
+ResizingTextView(
+    text: .constant("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
+    isEditable: false,
+    isSelectable: false,
+    lineLimit: 2
+)
+
+// Selectable, uneditable, non greedy
+ResizingTextView(
+    text: .constant("Lorem ipsum"),
+    isEditable: false,
+    hasGreedyWidth: false
+)
+.background(.yellow)
+
+#if os(iOS)
+// No autocapitalization (iOS Only)
+ResizingTextView(
+    text: $text4,
+    placeholder: "Placeholder"
+)
+.autocapitalizationType(.none)
+#endif
+
+// Customized textContentInset
+ResizingTextView(
+    text: $text5,
+    placeholder: ""
+)
+#if os(macOS)
+.textContainerInset(CGSize(width: 40, height: 10))
+#elseif os(iOS)
+.textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
+#endif
+}
 ```
 
 ## Demo
