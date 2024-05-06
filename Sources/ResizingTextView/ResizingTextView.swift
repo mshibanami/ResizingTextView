@@ -138,10 +138,16 @@ public struct ResizingTextView: View, Equatable {
             .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
 #elseif os(iOS)
         ZStack(alignment: .topLeading) {
-            
-            /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the insets.
-            let defaultTextContainerInset = UIEdgeInsets(top: 8, left: 0.00000001, bottom: 8, right: 0.00000001)
-            let effectiveTextContainerInset = textContainerInset ?? defaultTextContainerInset
+            /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the
+            let defaultInsetsForiOS17Bug = UIEdgeInsets(top: 0.00000001, left: 0.00000001, bottom: 0.00000001, right: 0.00000001)
+            let defaultVerticalPadding: CGFloat = isEditable ? 8 : 0
+            let defaultInsets = UIEdgeInsets(
+                top: defaultInsetsForiOS17Bug.top + defaultVerticalPadding,
+                left: defaultInsetsForiOS17Bug.left,
+                bottom: defaultInsetsForiOS17Bug.bottom + defaultVerticalPadding,
+                right: defaultInsetsForiOS17Bug.right
+            )
+            let effectiveTextContainerInset = textContainerInset ?? defaultInsets
             
             TextView(
                 $text,
