@@ -138,6 +138,11 @@ public struct ResizingTextView: View, Equatable {
             .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
 #elseif os(iOS)
         ZStack(alignment: .topLeading) {
+            
+            /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the insets.
+            let defaultTextContainerInset = UIEdgeInsets(top: 8, left: 0.00000001, bottom: 8, right: 0.00000001)
+            let effectiveTextContainerInset = textContainerInset ?? defaultTextContainerInset
+            
             TextView(
                 $text,
                 isEditable: isEditable,
@@ -148,7 +153,7 @@ public struct ResizingTextView: View, Equatable {
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor),
                 autocapitalizationType: autocapitalizationType,
-                textContainerInset: textContainerInset
+                textContainerInset: effectiveTextContainerInset
             )
             if let placeholder {
                 let isLTR = layoutDirection == .leftToRight
@@ -156,10 +161,10 @@ public struct ResizingTextView: View, Equatable {
                     .font(Font(font))
                     .lineLimit(1)
                     .foregroundColor(Color(foregroundColor.withAlphaComponent(0.2)))
-                    .padding(.top, textContainerInset?.top ?? 0)
-                    .padding(isLTR ? .leading : .trailing, textContainerInset?.left ?? 0)
-                    .padding(.bottom, textContainerInset?.bottom ?? 0)
-                    .padding(isLTR ? .trailing : .leading, textContainerInset?.right ?? 0)
+                    .padding(.top, effectiveTextContainerInset.top)
+                    .padding(isLTR ? .leading : .trailing, effectiveTextContainerInset.left)
+                    .padding(.bottom, effectiveTextContainerInset.bottom)
+                    .padding(isLTR ? .trailing : .leading, effectiveTextContainerInset.right)
                     .allowsHitTesting(false)
                     .opacity(text.isEmpty ? 1 : 0)
             }

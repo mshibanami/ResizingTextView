@@ -7,9 +7,6 @@ import UIKit
 struct TextView: UIViewRepresentable {
     static let defaultForegroundColor = Color(UIColor.label)
     
-    /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this default value to the insets.
-    private static let defaultTextContainerInset = UIEdgeInsets(top: 0.00000001, left: 0.00000001, bottom: 0.00000001, right: 0.00000001)
-
     @Binding private var text: String
     private var isEditable: Bool
     private var isScrollable: Bool
@@ -20,7 +17,7 @@ struct TextView: UIViewRepresentable {
     private var canHaveNewLineCharacters: Bool
     private var width: CGFloat?
     private var autocapitalizationType: UITextAutocapitalizationType
-    private var textContainerInset: UIEdgeInsets?
+    private var textContainerInset: UIEdgeInsets
 
     init(
         _ text: Binding<String>,
@@ -32,7 +29,7 @@ struct TextView: UIViewRepresentable {
         canHaveNewLineCharacters: Bool,
         foregroundColor: Color,
         autocapitalizationType: UITextAutocapitalizationType,
-        textContainerInset: UIEdgeInsets?
+        textContainerInset: UIEdgeInsets
     ) {
         _text = text
         self.isEditable = isEditable
@@ -84,7 +81,7 @@ struct TextView: UIViewRepresentable {
         if view.autocapitalizationType != autocapitalizationType {
             view.autocapitalizationType = autocapitalizationType
         }
-        let textContainerInset = textContainerInset ?? Self.defaultTextContainerInset
+        let textContainerInset = textContainerInset
         if view.textContainerInset != textContainerInset {
             view.textContainerInset = textContainerInset
         }
