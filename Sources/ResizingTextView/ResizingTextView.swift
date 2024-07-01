@@ -19,6 +19,16 @@ public struct ResizingTextView: View, Equatable {
     var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
     var textContainerInset: CGSize?
+    
+    var effectiveTextContainerInset: CGSize {
+        textContainerInset ?? {
+            var inset = CGSize(width: -5, height: 0)
+            inset.width += (isEditable ? 9 : 0)
+            inset.height += (isEditable ? 8 : 0)
+            return inset
+        }()
+    }
+
 #elseif os(iOS)
     var autocapitalizationType: UITextAutocapitalizationType = .sentences
     var textContainerInset: UIEdgeInsets?
@@ -73,13 +83,21 @@ public struct ResizingTextView: View, Equatable {
 #endif
     }
 
-    var invisibleSizingText: some View {
+    @ViewBuilder var invisibleSizingText: some View {
+#if os(macOS)
+        // https://developer.apple.com/documentation/uikit/nstextcontainer/1444527-linefragmentpadding
+        let textViewLineFragmentPadding: CGFloat = 5
+#endif
         Text(text.isEmpty ? " " : text)
             .lineLimit(lineLimit ?? .max)
 #if os(macOS)
-            .padding(.vertical, isEditable ? 8 : 0)
-            .padding(.horizontal, isEditable ? 9 : 0)
             .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
+            .padding(EdgeInsets(
+                top: effectiveTextContainerInset.height,
+                leading: effectiveTextContainerInset.width + textViewLineFragmentPadding,
+                bottom: effectiveTextContainerInset.height,
+                trailing: effectiveTextContainerInset.width + textViewLineFragmentPadding
+            ))
 #elseif os(iOS)
             .padding(.top, isEditable ? 8 : 2)
             .padding(.bottom, isEditable ? 8 : 3)
@@ -89,7 +107,7 @@ public struct ResizingTextView: View, Equatable {
             .frame(
                 maxWidth: hasGreedyWidth ? .infinity : nil,
                 maxHeight: (isEditable && isScrollable) ? .infinity : nil,
-                alignment: .leading
+                alignment: .topLeading
             )
             .opacity(0)
             .layoutPriority(1)
@@ -120,12 +138,7 @@ public struct ResizingTextView: View, Equatable {
                 }
             },
             onInsertNewline: onInsertNewline,
-            textContainerInset: textContainerInset ?? {
-                var inset = CGSize(width: -5, height: 0)
-                inset.width += (isEditable ? 9 : 0)
-                inset.height += (isEditable ? 8 : 0)
-                return inset
-            }()
+            textContainerInset: effectiveTextContainerInset
         )
         .background(isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
         .roundedFilledBorder(
