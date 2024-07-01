@@ -53,6 +53,7 @@ struct TextView: NSViewRepresentable {
     func makeNSView(context: Context) -> TextEnclosingScrollView {
         let textView = CustomTextView()
         textView.delegate = context.coordinator
+        textView.textStorage?.delegate = context.coordinator
         textView.isRichText = false
         textView.allowsUndo = true
         textView.autoresizingMask = [.width]
@@ -78,6 +79,8 @@ struct TextView: NSViewRepresentable {
         let scrollView = TextEnclosingScrollView()
         scrollView.documentView = textView
         scrollView.drawsBackground = false
+        
+        context.coordinator.nsView = textView
 
         return scrollView
     }
@@ -148,58 +151,81 @@ struct TextView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(swiftUIView: self)
     }
 
-    final class Coordinator: NSObject, NSTextViewDelegate {
-        var parent: TextView
-        var selectedRanges = [NSValue]()
+    final class Coordinator: NSObject, NSTextViewDelegate, NSTextStorageDelegate {
+        fileprivate var swiftUIView: TextView
+        fileprivate weak var nsView: CustomTextView?
+        fileprivate var selectedRanges = [NSValue]()
 
-        init(_ parent: TextView) {
-            self.parent = parent
+        init(swiftUIView: TextView) {
+            self.swiftUIView = swiftUIView
         }
 
         func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
             switch commandSelector {
             case #selector(NSResponder.insertTab(_:)):
-                guard parent.focusesNextKeyViewByTabKey else {
+                guard swiftUIView.focusesNextKeyViewByTabKey else {
                     return false
                 }
                 textView.window?.selectNextKeyView(nil)
                 return true
             case #selector(NSResponder.insertBacktab(_:)):
-                guard parent.focusesNextKeyViewByTabKey else {
+                guard swiftUIView.focusesNextKeyViewByTabKey else {
                     return false
                 }
                 textView.window?.selectPreviousKeyView(nil)
                 return true
             case #selector(NSResponder.insertNewline(_:)):
-                return parent.onInsertNewline?() ?? false
+                return swiftUIView.onInsertNewline?() ?? false
             default:
                 return false
             }
         }
-
+        
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            if replacementString == "\n", !parent.canHaveNewLineCharacters {
+            if replacementString == "\n", !swiftUIView.canHaveNewLineCharacters {
                 return false
             }
             return true
         }
-
+        
         func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? CustomTextView else {
+            guard let nsView,
+                  (notification.object as? CustomTextView) == nsView else {
                 return
             }
-            if !parent.canHaveNewLineCharacters,
-               textView.string.contains("\n") {
-                textView.string.removeAll(where: { $0 == "\n" })
+            updateTextView()
+        }
+        
+        func textStorage(_ textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
+            // The `textDidChange()` delegate method is not called when the view is not focused AND the text is changed by undo/redo.
+            // This code is a fallback for when it happens.
+            guard let nsView,
+                  let window = nsView.window,
+                  let firstResponder = window.firstResponder,
+                  nsView != firstResponder else {
+                return
             }
-            if parent.text != textView.string {
-                parent.text = textView.string
+            updateTextView()
+        }
+        
+        private func updateTextView() {
+            guard let nsView else {
+                return
             }
-            if selectedRanges != textView.selectedRanges {
-                selectedRanges = textView.selectedRanges
+            if !swiftUIView.canHaveNewLineCharacters,
+               nsView.string.contains("\n") {
+                nsView.string.removeAll(where: { $0 == "\n" })
+            }
+            let newString = nsView.string
+            if swiftUIView.text != newString {
+                swiftUIView.text = newString
+            }
+            let newRanges = nsView.selectedRanges
+            if selectedRanges != newRanges {
+                selectedRanges = newRanges
             }
         }
     }
