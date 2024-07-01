@@ -103,6 +103,7 @@ struct TextView: UIViewRepresentable {
 
         if needsInvalidateIntrinsicContentSize, !isScrollable {
             view.invalidateIntrinsicContentSize()
+            view.layoutIfNeeded()
         }
     }
 
