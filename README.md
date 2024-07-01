@@ -4,6 +4,9 @@ This is a SwiftUI resizing text view for iOS and macOS.
 
 ## Usage
 
+You can check how it works using [the Example project](./Example).
+These are sample codes from the project:
+
 ```swift
 // Self-sizing automatically (Default)
 ResizingTextView(text: $text1)
