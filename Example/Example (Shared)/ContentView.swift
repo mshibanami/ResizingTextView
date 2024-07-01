@@ -64,8 +64,10 @@ struct ContentView: View {
                         isEditable: false,
                         hasGreedyWidth: false
                     )
+                    .foregroundColor(.black)
                     .background(.yellow)
                 }
+                
 #if os(iOS)
                 ExampleSection("No autocapitalization") {
                     ResizingTextView(
