@@ -3,7 +3,7 @@
 #if os(macOS)
 import SwiftUI
 
-struct TextView: NSViewRepresentable {
+@MainActor struct TextView: NSViewRepresentable {
     static let defaultForegroundColor = Color(NSColor.textColor)
 
     @Binding var text: String
@@ -202,16 +202,19 @@ struct TextView: NSViewRepresentable {
         func textStorage(_ textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
             // The `textDidChange()` delegate method is not called when the view is not focused AND the text is changed by undo/redo.
             // This code is a fallback for when it happens.
-            guard let nsView,
-                  let window = nsView.window,
-                  let firstResponder = window.firstResponder,
-                  nsView != firstResponder else {
-                return
+            Task { [weak self] in
+                guard let self,
+                      let nsView,
+                      let window = await nsView.window,
+                      let firstResponder = await window.firstResponder,
+                      nsView != firstResponder else {
+                    return
+                }
+                await updateTextView()
             }
-            updateTextView()
         }
         
-        private func updateTextView() {
+        @MainActor private func updateTextView() {
             guard let nsView else {
                 return
             }

@@ -4,7 +4,7 @@ import Combine
 import Foundation
 import SwiftUI
 
-public struct ResizingTextView: View, Equatable {
+@MainActor public struct ResizingTextView: View, Equatable {
     @Binding var text: String
     var placeholder: String?
     var isEditable: Bool

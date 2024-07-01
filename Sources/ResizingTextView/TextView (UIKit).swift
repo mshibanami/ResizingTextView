@@ -4,7 +4,7 @@
 import SwiftUI
 import UIKit
 
-struct TextView: UIViewRepresentable {
+@MainActor struct TextView: UIViewRepresentable {
     static let defaultForegroundColor = Color(UIColor.label)
     
     @Binding private var text: String
