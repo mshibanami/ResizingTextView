@@ -18,6 +18,7 @@ import UIKit
     private var width: CGFloat?
     private var autocapitalizationType: UITextAutocapitalizationType
     private var textContainerInset: UIEdgeInsets
+    private var keyboardType: UIKeyboardType
 
     init(
         _ text: Binding<String>,
@@ -29,7 +30,8 @@ import UIKit
         canHaveNewLineCharacters: Bool,
         foregroundColor: Color,
         autocapitalizationType: UITextAutocapitalizationType,
-        textContainerInset: UIEdgeInsets
+        textContainerInset: UIEdgeInsets,
+        keyboardType: UIKeyboardType
     ) {
         _text = text
         self.isEditable = isEditable
@@ -41,6 +43,7 @@ import UIKit
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.autocapitalizationType = autocapitalizationType
         self.textContainerInset = textContainerInset
+        self.keyboardType = keyboardType
     }
 
     func makeUIView(context: Context) -> CustomTextView {
@@ -81,6 +84,10 @@ import UIKit
         if view.autocapitalizationType != autocapitalizationType {
             view.autocapitalizationType = autocapitalizationType
         }
+        if view.keyboardType != keyboardType {
+            view.keyboardType = keyboardType
+        }
+        
         let textContainerInset = textContainerInset
         if view.textContainerInset != textContainerInset {
             view.textContainerInset = textContainerInset

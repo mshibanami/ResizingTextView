@@ -32,6 +32,7 @@ import SwiftUI
 #elseif os(iOS)
     var autocapitalizationType: UITextAutocapitalizationType = .sentences
     var textContainerInset: UIEdgeInsets?
+    var keyboardType: UIKeyboardType = .default
 #endif
     
     @Environment(\.layoutDirection) private var layoutDirection
@@ -172,7 +173,8 @@ import SwiftUI
                 canHaveNewLineCharacters: canHaveNewLineCharacters,
                 foregroundColor: Color(foregroundColor),
                 autocapitalizationType: autocapitalizationType,
-                textContainerInset: effectiveTextContainerInset
+                textContainerInset: effectiveTextContainerInset,
+                keyboardType: keyboardType
             )
             if let placeholder {
                 let isLTR = layoutDirection == .leftToRight
@@ -266,6 +268,12 @@ public extension ResizingTextView {
     func textContainerInset(_ inset: UIEdgeInsets?) -> Self {
         var newSelf = self
         newSelf.textContainerInset = inset
+        return newSelf
+    }
+    
+    func keyboardType(_ keyboardType: UIKeyboardType) -> Self {
+        var newSelf = self
+        newSelf.keyboardType = keyboardType
         return newSelf
     }
 #endif
