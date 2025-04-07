@@ -1,6 +1,6 @@
 //  Copyright © 2022 Manabu Nakazawa. All rights reserved.
 
-#if os(iOS)
+#if canImport(UIKit)
 import SwiftUI
 import UIKit
 

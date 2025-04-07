@@ -1,6 +1,6 @@
 //  Copyright © 2022 Manabu Nakazawa. All rights reserved.
 
-#if os(macOS)
+#if canImport(AppKit)
 import SwiftUI
 
 @MainActor struct TextView: NSViewRepresentable {

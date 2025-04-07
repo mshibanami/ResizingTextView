@@ -15,7 +15,7 @@ import SwiftUI
     var canHaveNewLineCharacters: Bool
     var foregroundColor: UXColor = defaultLabelColor
     var hasGreedyWidth: Bool
-#if os(macOS)
+#if canImport(AppKit)
     var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
     var textContainerInset: CGSize?
@@ -29,7 +29,7 @@ import SwiftUI
         }()
     }
 
-#elseif os(iOS)
+#elseif canImport(UIKit)
     var autocapitalizationType: UITextAutocapitalizationType = .sentences
     var textContainerInset: UIEdgeInsets?
     var keyboardType: UIKeyboardType = .default
@@ -37,12 +37,12 @@ import SwiftUI
     
     @Environment(\.layoutDirection) private var layoutDirection
     
-#if os(macOS)
+#if canImport(AppKit)
     public static var defaultLabelColor: NSColor {
         NSColor.labelColor
     }
 
-#elseif os(iOS)
+#elseif canImport(UIKit)
     public static var defaultLabelColor: UIColor {
         UIColor.label
     }
@@ -71,10 +71,10 @@ import SwiftUI
     }
     
     public var body: some View {
-#if os(macOS)
+#if canImport(AppKit)
         invisibleSizingText
             .overlay(visibleTextViewWrapper)
-#elseif os(iOS)
+#elseif canImport(UIKit)
         if hasGreedyWidth {
             visibleTextViewWrapper
         } else {
@@ -85,13 +85,13 @@ import SwiftUI
     }
 
     @ViewBuilder var invisibleSizingText: some View {
-#if os(macOS)
+#if canImport(AppKit)
         // https://developer.apple.com/documentation/uikit/nstextcontainer/1444527-linefragmentpadding
         let textViewLineFragmentPadding: CGFloat = 5
 #endif
         Text(text.isEmpty ? " " : text)
             .lineLimit(lineLimit ?? .max)
-#if os(macOS)
+#if canImport(AppKit)
             .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
             .padding(EdgeInsets(
                 top: effectiveTextContainerInset.height,
@@ -99,7 +99,7 @@ import SwiftUI
                 bottom: effectiveTextContainerInset.height,
                 trailing: effectiveTextContainerInset.width + textViewLineFragmentPadding
             ))
-#elseif os(iOS)
+#elseif canImport(UIKit)
             .padding(.top, isEditable ? 8 : 2)
             .padding(.bottom, isEditable ? 8 : 3)
 #endif
@@ -115,7 +115,7 @@ import SwiftUI
     }
     
     private var visibleTextViewWrapper: some View {
-#if os(macOS)
+#if canImport(AppKit)
         TextView(
             $text,
             placeholder: placeholder,
@@ -150,7 +150,7 @@ import SwiftUI
         .overlay(RoundedRectangle(cornerRadius: 10)
             .stroke(Color.accentColor.opacity(0.5), lineWidth: 4)
             .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
-#elseif os(iOS)
+#elseif canImport(UIKit)
         ZStack(alignment: .topLeading) {
             /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the
             let defaultInsetsForiOS17Bug = UIEdgeInsets(top: 0.00000001, left: 0.00000001, bottom: 0.00000001, right: 0.00000001)
@@ -205,9 +205,9 @@ import SwiftUI
             && lhs.foregroundColor == rhs.foregroundColor
             && lhs.hasGreedyWidth == rhs.hasGreedyWidth
             && lhs.isFocused == rhs.isFocused
-#if os(macOS)
+#if canImport(AppKit)
         result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
-#elseif os(iOS)
+#elseif canImport(UIKit)
         result = result && lhs.autocapitalizationType == rhs.autocapitalizationType
 #endif
         return result
@@ -215,7 +215,7 @@ import SwiftUI
 }
 
 public extension ResizingTextView {
-#if os(macOS)
+#if canImport(AppKit)
     func focusesNextKeyViewByTabKey(_ focuses: Bool) -> Self {
         var newSelf = self
         newSelf.focusesNextKeyViewByTabKey = focuses
@@ -246,7 +246,7 @@ public extension ResizingTextView {
         return newSelf
     }
 
-#elseif os(iOS)
+#elseif canImport(UIKit)
     func foregroundColor(_ color: UIColor) -> Self {
         var newSelf = self
         newSelf.foregroundColor = color

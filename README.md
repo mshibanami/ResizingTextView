@@ -51,7 +51,7 @@ ResizingTextView(
 )
 .background(.yellow)
 
-#if os(iOS)
+#if canImport(UIKit)
 // No autocapitalization (iOS Only)
 ResizingTextView(
     text: $text4,
@@ -64,9 +64,9 @@ ResizingTextView(
 ResizingTextView(
     text: $text5
 )
-#if os(macOS)
+#if canImport(AppKit)
 .textContainerInset(CGSize(width: 40, height: 10))
-#elseif os(iOS)
+#elseif canImport(UIKit)
 .textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
 #endif
 }
