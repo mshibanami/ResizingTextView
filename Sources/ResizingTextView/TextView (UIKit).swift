@@ -7,8 +7,26 @@ import UIKit
 @MainActor struct TextView: UIViewRepresentable {
     static let defaultForegroundColor = Color(UIColor.label)
     
+    struct Parameters {
+        var text: Binding<String>
+#if !os(tvOS)
+        var isEditable: Bool
+#endif
+        var isScrollable: Bool
+        var isSelectable: Bool
+        var lineLimit: Int
+        var font: UIFont
+        var canHaveNewLineCharacters: Bool
+        var foregroundColor: Color
+        var autocapitalizationType: UITextAutocapitalizationType
+        var textContainerInset: UIEdgeInsets
+        var keyboardType: UIKeyboardType
+    }
+    
     @Binding private var text: String
+#if !os(tvOS)
     private var isEditable: Bool
+#endif
     private var isScrollable: Bool
     private var isSelectable: Bool
     private var lineLimit: Int
@@ -19,33 +37,23 @@ import UIKit
     private var autocapitalizationType: UITextAutocapitalizationType
     private var textContainerInset: UIEdgeInsets
     private var keyboardType: UIKeyboardType
-
-    init(
-        _ text: Binding<String>,
-        isEditable: Bool,
-        isScrollable: Bool,
-        isSelectable: Bool,
-        lineLimit: Int,
-        font: UIFont,
-        canHaveNewLineCharacters: Bool,
-        foregroundColor: Color,
-        autocapitalizationType: UITextAutocapitalizationType,
-        textContainerInset: UIEdgeInsets,
-        keyboardType: UIKeyboardType
-    ) {
-        _text = text
-        self.isEditable = isEditable
-        self.isScrollable = isScrollable
-        self.isSelectable = isSelectable
-        self.lineLimit = lineLimit
-        self.foregroundColor = foregroundColor
-        self.font = font
-        self.canHaveNewLineCharacters = canHaveNewLineCharacters
-        self.autocapitalizationType = autocapitalizationType
-        self.textContainerInset = textContainerInset
-        self.keyboardType = keyboardType
+    
+    init(parameters: Parameters) {
+        _text = parameters.text
+        self.isScrollable = parameters.isScrollable
+#if !os(tvOS)
+        self.isEditable = parameters.isEditable
+#endif
+        self.isSelectable = parameters.isSelectable
+        self.lineLimit = parameters.lineLimit
+        self.foregroundColor = parameters.foregroundColor
+        self.font = parameters.font
+        self.canHaveNewLineCharacters = parameters.canHaveNewLineCharacters
+        self.autocapitalizationType = parameters.autocapitalizationType
+        self.textContainerInset = parameters.textContainerInset
+        self.keyboardType = parameters.keyboardType
     }
-
+    
     func makeUIView(context: Context) -> CustomTextView {
         let view = CustomTextView()
         view.setContentHuggingPriority(.defaultHigh, for: .vertical)
@@ -72,9 +80,11 @@ import UIKit
         if view.textColor != UIColor(foregroundColor) {
             view.textColor = UIColor(foregroundColor)
         }
+#if !os(tvOS)
         if view.isEditable != isEditable {
             view.isEditable = isEditable
         }
+#endif
         if view.isSelectable != isSelectable {
             view.isSelectable = isSelectable
         }
@@ -103,10 +113,12 @@ import UIKit
             }
         }
 
+#if !os(tvOS)
         if !isEditable {
             view.textContainerInset = textContainerInset
             needsInvalidateIntrinsicContentSize = true
         }
+#endif
 
         if needsInvalidateIntrinsicContentSize, !isScrollable {
             view.invalidateIntrinsicContentSize()

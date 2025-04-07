@@ -7,7 +7,9 @@ import SwiftUI
 @MainActor public struct ResizingTextView: View, Equatable {
     @Binding var text: String
     var placeholder: String?
+#if !os(tvOS)
     var isEditable: Bool
+#endif
     var isScrollable: Bool
     var isSelectable: Bool
     var lineLimit: Int?
@@ -49,7 +51,26 @@ import SwiftUI
 #endif
 
     @State private var isFocused = false
-    
+
+#if os(tvOS)
+    public init(
+        text: Binding<String>,
+        placeholder: String? = nil,
+        isScrollable: Bool = false,
+        isSelectable: Bool = true,
+        lineLimit: Int? = nil,
+        canHaveNewLineCharacters: Bool = true,
+        hasGreedyWidth: Bool = true
+    ) {
+        self._text = text
+        self.placeholder = placeholder
+        self.isScrollable = isScrollable
+        self.isSelectable = isSelectable
+        self.lineLimit = lineLimit
+        self.canHaveNewLineCharacters = canHaveNewLineCharacters
+        self.hasGreedyWidth = hasGreedyWidth
+    }
+#else
     public init(
         text: Binding<String>,
         placeholder: String? = nil,
@@ -69,6 +90,7 @@ import SwiftUI
         self.canHaveNewLineCharacters = canHaveNewLineCharacters
         self.hasGreedyWidth = hasGreedyWidth
     }
+#endif
     
     public var body: some View {
 #if canImport(AppKit)
@@ -99,17 +121,25 @@ import SwiftUI
                 bottom: effectiveTextContainerInset.height,
                 trailing: effectiveTextContainerInset.width + textViewLineFragmentPadding
             ))
-#elseif canImport(UIKit)
+#elseif canImport(UIKit) && !os(tvOS)
             .padding(.top, isEditable ? 8 : 2)
             .padding(.bottom, isEditable ? 8 : 3)
 #endif
             .foregroundColor(Color.pink)
             .font(Font(font))
+#if os(tvOS)
+            .frame(
+                maxWidth: hasGreedyWidth ? .infinity : nil,
+                maxHeight: isScrollable ? .infinity : nil,
+                alignment: .topLeading
+            )
+#else
             .frame(
                 maxWidth: hasGreedyWidth ? .infinity : nil,
                 maxHeight: (isEditable && isScrollable) ? .infinity : nil,
                 alignment: .topLeading
             )
+#endif
             .opacity(0)
             .layoutPriority(1)
     }
@@ -154,7 +184,11 @@ import SwiftUI
         ZStack(alignment: .topLeading) {
             /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the
             let defaultInsetsForiOS17Bug = UIEdgeInsets(top: 0.00000001, left: 0.00000001, bottom: 0.00000001, right: 0.00000001)
+#if !os(tvOS)
             let defaultVerticalPadding: CGFloat = isEditable ? 8 : 0
+#else
+            let defaultVerticalPadding: CGFloat = 0
+#endif
             let defaultInsets = UIEdgeInsets(
                 top: defaultInsetsForiOS17Bug.top + defaultVerticalPadding,
                 left: defaultInsetsForiOS17Bug.left,
@@ -163,8 +197,22 @@ import SwiftUI
             )
             let effectiveTextContainerInset = textContainerInset ?? defaultInsets
             
-            TextView(
-                $text,
+#if os(tvOS)
+            let parameters = TextView.Parameters(
+                text: $text,
+                isScrollable: isScrollable,
+                isSelectable: isSelectable,
+                lineLimit: lineLimit ?? .max,
+                font: font,
+                canHaveNewLineCharacters: canHaveNewLineCharacters,
+                foregroundColor: Color(foregroundColor),
+                autocapitalizationType: autocapitalizationType,
+                textContainerInset: effectiveTextContainerInset,
+                keyboardType: keyboardType
+            )
+#else
+            let parameters = TextView.Parameters(
+                text: $text,
                 isEditable: isEditable,
                 isScrollable: isScrollable,
                 isSelectable: isSelectable,
@@ -176,6 +224,9 @@ import SwiftUI
                 textContainerInset: effectiveTextContainerInset,
                 keyboardType: keyboardType
             )
+#endif
+            TextView(parameters: parameters)
+            
             if let placeholder {
                 let isLTR = layoutDirection == .leftToRight
                 Text(placeholder)
@@ -196,7 +247,6 @@ import SwiftUI
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
         var result = lhs.text == rhs.text
             && lhs.placeholder == rhs.placeholder
-            && lhs.isEditable == rhs.isEditable
             && lhs.isScrollable == rhs.isScrollable
             && lhs.isSelectable == rhs.isSelectable
             && lhs.lineLimit == rhs.lineLimit
@@ -205,6 +255,9 @@ import SwiftUI
             && lhs.foregroundColor == rhs.foregroundColor
             && lhs.hasGreedyWidth == rhs.hasGreedyWidth
             && lhs.isFocused == rhs.isFocused
+#if !os(tvOS)
+        result = result && lhs.isEditable == rhs.isEditable
+#endif
 #if canImport(AppKit)
         result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
 #elseif canImport(UIKit)
