@@ -57,10 +57,15 @@ import SwiftUI
         let textStorage = DecoratableTextStorage()
         let layoutManager = NSLayoutManager()
         let textContainer = NSTextContainer()
+        textContainer.containerSize = .greatestFiniteMagnitude
         textContainer.widthTracksTextView = true
         textStorage.addLayoutManager(layoutManager)
         layoutManager.addTextContainer(textContainer)
         let textView = CustomTextView(frame: .zero, textContainer: textContainer)
+        textView.minSize = .zero
+        textView.maxSize = .greatestFiniteMagnitude
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
         textView.delegate = context.coordinator
         textView.textStorage?.delegate = context.coordinator
         textView.isRichText = true
@@ -89,6 +94,7 @@ import SwiftUI
         let scrollView = TextEnclosingScrollView()
         scrollView.documentView = textView
         scrollView.drawsBackground = false
+        scrollView.hasVerticalScroller = isScrollable
         
         context.coordinator.nsView = textView
 
@@ -299,5 +305,12 @@ private class CustomTextView: NSTextView {
         }
         return result
     }
+}
+
+extension NSSize {
+    static let greatestFiniteMagnitude = NSSize(
+        width: CGFloat.greatestFiniteMagnitude,
+        height: CGFloat.greatestFiniteMagnitude
+    )
 }
 #endif
