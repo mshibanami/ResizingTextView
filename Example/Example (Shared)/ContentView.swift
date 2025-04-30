@@ -14,6 +14,7 @@ struct ContentView: View {
     @State var text3 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
     @State var text4 = ""
     @State var text5 = "I have greater horizontal padding than the others."
+    @State var text6 = "Capital Letters are EMPHASIZED."
     
     var body: some View {
         ScrollView {
@@ -86,6 +87,29 @@ struct ContentView: View {
 #elseif canImport(UIKit)
                     .textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
 #endif
+                }
+                
+                ExampleSection("Decoration") {
+                    ResizingTextView(
+                        text: $text6,
+                    )
+                    .decorations({
+                        let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
+                        let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
+                        let decorations: [TextDecoration] = sequences.compactMap {
+                            guard let range = Range($0.range, in: text6) else {
+                                return nil
+                            }
+                            return TextDecoration(
+                                range: range,
+                                attributes: [
+                                    .font: NSFont.boldSystemFont(ofSize: 16),
+                                    .foregroundColor: NSColor.systemRed,
+                                ]
+                            )
+                        }
+                        return decorations
+                    }())
                 }
             }
             .scenePadding()

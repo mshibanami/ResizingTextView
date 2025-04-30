@@ -17,11 +17,11 @@ import SwiftUI
     var canHaveNewLineCharacters: Bool
     var foregroundColor: UXColor = defaultLabelColor
     var hasGreedyWidth: Bool
+    var decorations: [TextDecoration] = []
 #if canImport(AppKit)
     var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
     var textContainerInset: CGSize?
-    
     var effectiveTextContainerInset: CGSize {
         textContainerInset ?? {
             var inset = CGSize(width: -5, height: 0)
@@ -30,7 +30,6 @@ import SwiftUI
             return inset
         }()
     }
-
 #elseif canImport(UIKit)
     var autocapitalizationType: UITextAutocapitalizationType = .sentences
     var textContainerInset: UIEdgeInsets?
@@ -55,6 +54,7 @@ import SwiftUI
 #if os(tvOS)
     public init(
         text: Binding<String>,
+        decorations: [TextDecoration] = [],
         placeholder: String? = nil,
         isScrollable: Bool = false,
         isSelectable: Bool = true,
@@ -63,6 +63,7 @@ import SwiftUI
         hasGreedyWidth: Bool = true
     ) {
         self._text = text
+        self.decorations = decorations
         self.placeholder = placeholder
         self.isScrollable = isScrollable
         self.isSelectable = isSelectable
@@ -73,6 +74,7 @@ import SwiftUI
 #else
     public init(
         text: Binding<String>,
+        decorations: [TextDecoration] = [],
         placeholder: String? = nil,
         isEditable: Bool = true,
         isScrollable: Bool = false,
@@ -82,6 +84,7 @@ import SwiftUI
         hasGreedyWidth: Bool = true
     ) {
         self._text = text
+        self.decorations = decorations
         self.placeholder = placeholder
         self.isEditable = isEditable
         self.isScrollable = isScrollable
@@ -148,6 +151,7 @@ import SwiftUI
 #if canImport(AppKit)
         TextView(
             $text,
+            decorations: decorations,
             placeholder: placeholder,
             isEditable: isEditable,
             isScrollable: isScrollable,
@@ -246,6 +250,7 @@ import SwiftUI
     
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
         var result = lhs.text == rhs.text
+            && lhs.decorations == rhs.decorations
             && lhs.placeholder == rhs.placeholder
             && lhs.isScrollable == rhs.isScrollable
             && lhs.isSelectable == rhs.isSelectable
@@ -268,6 +273,12 @@ import SwiftUI
 }
 
 public extension ResizingTextView {
+    func decorations(_ value: [TextDecoration]) -> Self {
+        var newSelf = self
+        newSelf.decorations = value
+        return newSelf
+    }
+    
 #if canImport(AppKit)
     func focusesNextKeyViewByTabKey(_ focuses: Bool) -> Self {
         var newSelf = self
