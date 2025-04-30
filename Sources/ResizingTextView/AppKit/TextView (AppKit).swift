@@ -69,6 +69,7 @@ import SwiftUI
         textView.translatesAutoresizingMaskIntoConstraints = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
+        resetTypingAttributes(of: textView)
         textView.onFocusChanged = { [weak textView] isFocused in
             if isFocused {
                 if text.isEmpty {
@@ -128,10 +129,7 @@ import SwiftUI
         }
         
         let nsForegroundColor = NSColor(foregroundColor)
-        if let textStorage = textView.textStorage as? DecoratableTextStorage,
-           textStorage.attributionMap.defaultFont != font
-           || textStorage.attributionMap.defaultForegroundColor != nsForegroundColor
-           || textStorage.attributionMap.decorations != decorations {
+        if let textStorage = textView.textStorage as? DecoratableTextStorage {
             textStorage.attributionMap = .init(
                 defaultFont: font,
                 defaultForegroundColor: nsForegroundColor,
@@ -168,6 +166,13 @@ import SwiftUI
     
     func makeCoordinator() -> Coordinator {
         Coordinator(swiftUIView: self)
+    }
+    
+    func resetTypingAttributes(of textView: NSTextView) {
+        var newTypingAttributes = textView.typingAttributes
+        newTypingAttributes[.font] = font
+        newTypingAttributes[.foregroundColor] = NSColor(foregroundColor)
+        textView.typingAttributes = newTypingAttributes
     }
 
     final class Coordinator: NSObject, NSTextViewDelegate, NSTextStorageDelegate {
@@ -241,6 +246,7 @@ import SwiftUI
             let newString = nsView.string
             if swiftUIView.text != newString {
                 swiftUIView.text = newString
+                swiftUIView.resetTypingAttributes(of: nsView)
             }
             let newRanges = nsView.selectedRanges
             if selectedRanges != newRanges {
