@@ -114,7 +114,7 @@ import SwiftUI
         // https://developer.apple.com/documentation/uikit/nstextcontainer/1444527-linefragmentpadding
         let textViewLineFragmentPadding: CGFloat = 5
 #endif
-        Text(text.isEmpty ? " " : text)
+        Text(makeAttributedString())
             .lineLimit(lineLimit ?? .max)
 #if canImport(AppKit)
             .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
@@ -128,8 +128,6 @@ import SwiftUI
             .padding(.top, isEditable ? 8 : 2)
             .padding(.bottom, isEditable ? 8 : 3)
 #endif
-            .foregroundColor(Color.pink)
-            .font(Font(font))
 #if os(tvOS)
             .frame(
                 maxWidth: hasGreedyWidth ? .infinity : nil,
@@ -269,6 +267,21 @@ import SwiftUI
         result = result && lhs.autocapitalizationType == rhs.autocapitalizationType
 #endif
         return result
+    }
+    
+    func makeAttributedString() -> AttributedString {
+        let base = NSMutableAttributedString(
+            string: text.isEmpty ? " " : text,
+            attributes: [
+                .font: font,
+                .foregroundColor: foregroundColor,
+            ]
+        )
+        for decoration in decorations where decoration.range.isValid(in: text) {
+            let nsRange = NSRange(decoration.range, in: text)
+            base.addAttributes(decoration.attributes, range: nsRange)
+        }
+        return AttributedString(base)
     }
 }
 
