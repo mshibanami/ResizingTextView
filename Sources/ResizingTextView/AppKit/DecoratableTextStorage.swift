@@ -43,29 +43,25 @@ final class DecoratableTextStorage: NSTextStorage {
         endEditing()
     }
 
-    override func processEditing() {
-        super.processEditing()
-    }
-    
     private func applyDecorationsIfNeeded() {
         guard attributionMap != appliedAttributionMap else {
             return
         }
         beginEditing()
-        let fullRange = NSRange(location: 0, length: string.utf16.count)
-        // Apply defaultFont
-        if let defaultFont = attributionMap.defaultFont {
-            addAttributes([.font: defaultFont], range: fullRange)
-        }
-        if let defaultForegroundColor = attributionMap.defaultForegroundColor {
-            addAttributes([.foregroundColor: defaultForegroundColor], range: fullRange)
-        }
         for old in appliedAttributionMap.decorations where old.range.isValid(in: string) {
-            let ns = NSRange(old.range, in: string)
-            for key in old.attributes.keys { removeAttribute(key, range: ns) }
+            let nsRange = NSRange(old.range, in: string)
+            for key in old.attributes.keys {
+                removeAttribute(key, range: nsRange)
+            }
         }
-        for deco in attributionMap.decorations where deco.range.isValid(in: string) {
-            addAttributes(deco.attributes, range: NSRange(deco.range, in: string))
+        if let font = attributionMap.defaultFont {
+            addAttribute(.font, value: font, range: NSRange(location: 0, length: string.utf16.count))
+        }
+        if let color = attributionMap.defaultForegroundColor {
+            addAttribute(.foregroundColor, value: color, range: NSRange(location: 0, length: string.utf16.count))
+        }
+        for new in attributionMap.decorations where new.range.isValid(in: string) {
+            addAttributes(new.attributes, range: NSRange(new.range, in: string))
         }
         appliedAttributionMap = attributionMap
         endEditing()
