@@ -35,7 +35,6 @@ import UIKit
     private var foregroundColor: Color
     private var font: UIFont
     private var canHaveNewLineCharacters: Bool
-    private var width: CGFloat?
     private var autocapitalizationType: UITextAutocapitalizationType
     private var textContainerInset: UIEdgeInsets
     private var keyboardType: UIKeyboardType
