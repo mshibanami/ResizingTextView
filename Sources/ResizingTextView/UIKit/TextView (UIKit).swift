@@ -63,27 +63,27 @@ import UIKit
         textContainer.widthTracksTextView = true
         textStorage.addLayoutManager(layoutManager)
         layoutManager.addTextContainer(textContainer)
-        let view = CustomTextView(textContainer: textContainer)
-        view.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        view.textContainer.lineFragmentPadding = 0
-        view.backgroundColor = .clear
-        view.delegate = context.coordinator
-        resetTypingAttributes(of: view)
-        updateUIView(view, context: context)
-        return view
+        let textView = CustomTextView(textContainer: textContainer)
+        textView.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        textView.textContainer.lineFragmentPadding = 0
+        textView.backgroundColor = .clear
+        textView.delegate = context.coordinator
+        resetTypingAttributes(of: textView)
+        updateUIView(textView, context: context)
+        return textView
     }
 
-    func updateUIView(_ view: CustomTextView, context: Context) {
+    func updateUIView(_ textView: CustomTextView, context: Context) {
         var needsInvalidateIntrinsicContentSize = false
 
-        view.hasDynamicHeight = !isScrollable
-        view.clipsToBounds = isScrollable
+        textView.hasDynamicHeight = !isScrollable
+        textView.clipsToBounds = isScrollable
         
-        if view.text != text {
-            view.text = text
+        if textView.text != text {
+            textView.text = text
         }
         
-        if let textStorage = view.textStorage as? DecoratableTextStorage {
+        if let textStorage = textView.textStorage as? DecoratableTextStorage {
             textStorage.attributionMap = .init(
                 defaultFont: font,
                 defaultForegroundColor: UIColor(foregroundColor),
@@ -91,47 +91,47 @@ import UIKit
             )
         }
 #if !os(tvOS)
-        if view.isEditable != isEditable {
-            view.isEditable = isEditable
+        if textView.isEditable != isEditable {
+            textView.isEditable = isEditable
         }
 #endif
-        if view.isSelectable != isSelectable {
-            view.isSelectable = isSelectable
+        if textView.isSelectable != isSelectable {
+            textView.isSelectable = isSelectable
         }
-        if view.textContainer.maximumNumberOfLines != lineLimit {
-            view.textContainer.maximumNumberOfLines = lineLimit
+        if textView.textContainer.maximumNumberOfLines != lineLimit {
+            textView.textContainer.maximumNumberOfLines = lineLimit
         }
-        if view.autocapitalizationType != autocapitalizationType {
-            view.autocapitalizationType = autocapitalizationType
+        if textView.autocapitalizationType != autocapitalizationType {
+            textView.autocapitalizationType = autocapitalizationType
         }
-        if view.keyboardType != keyboardType {
-            view.keyboardType = keyboardType
+        if textView.keyboardType != keyboardType {
+            textView.keyboardType = keyboardType
         }
         
         let textContainerInset = textContainerInset
-        if view.textContainerInset != textContainerInset {
-            view.textContainerInset = textContainerInset
+        if textView.textContainerInset != textContainerInset {
+            textView.textContainerInset = textContainerInset
         }
         if lineLimit > 0 {
-            if view.textContainer.lineBreakMode != .byTruncatingTail {
-                view.textContainer.lineBreakMode = .byTruncatingTail
+            if textView.textContainer.lineBreakMode != .byTruncatingTail {
+                textView.textContainer.lineBreakMode = .byTruncatingTail
             }
         }
         if let selectedRange = context.coordinator.selectedRange {
-            if view.selectedRange != selectedRange {
-                view.selectedRange = selectedRange
+            if textView.selectedRange != selectedRange {
+                textView.selectedRange = selectedRange
             }
         }
 
 #if !os(tvOS)
         if !isEditable {
-            view.textContainerInset = textContainerInset
+            textView.textContainerInset = textContainerInset
             needsInvalidateIntrinsicContentSize = true
         }
 #endif
 
         if needsInvalidateIntrinsicContentSize, !isScrollable {
-            view.invalidateIntrinsicContentSize()
+            textView.invalidateIntrinsicContentSize()
         }
     }
 
@@ -147,32 +147,29 @@ import UIKit
     }
 
     final class Coordinator: NSObject, UITextViewDelegate {
-        var parent: TextView
+        var swiftUIView: TextView
         var selectedRange: NSRange?
 
         init(_ parent: TextView) {
-            self.parent = parent
+            self.swiftUIView = parent
         }
                 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            parent.resetTypingAttributes(of: textView)
+            swiftUIView.resetTypingAttributes(of: textView)
             return true
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            if !parent.canHaveNewLineCharacters,
+            if !swiftUIView.canHaveNewLineCharacters,
                textView.text.contains(where: { $0 == "\n" }) {
                 textView.text.removeAll(where: { $0 == "\n" })
             }
-
-            if textView.text != parent.text {
-                parent.text = textView.text
+            if textView.text != swiftUIView.text {
+                swiftUIView.text = textView.text
             }
-
             if selectedRange != textView.selectedRange {
                 selectedRange = textView.selectedRange
             }
-
             textView.invalidateIntrinsicContentSize()
         }
     }

@@ -98,7 +98,7 @@ struct ContentView: View {
                 }
                 
                 ExampleSection("Decorating specific parts of the text") {
-                    ResizingTextView(text: $text6)
+                    ResizingTextView(text: $text6, canHaveNewLineCharacters: false)
                         .decorations({
                             let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
                             let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
