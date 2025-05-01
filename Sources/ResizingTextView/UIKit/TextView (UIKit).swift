@@ -153,6 +153,11 @@ import UIKit
         init(_ parent: TextView) {
             self.parent = parent
         }
+                
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            parent.resetTypingAttributes(of: textView)
+            return true
+        }
 
         func textViewDidChange(_ textView: UITextView) {
             if !parent.canHaveNewLineCharacters,
@@ -162,7 +167,6 @@ import UIKit
 
             if textView.text != parent.text {
                 parent.text = textView.text
-                parent.resetTypingAttributes(of: textView)
             }
 
             if selectedRange != textView.selectedRange {
