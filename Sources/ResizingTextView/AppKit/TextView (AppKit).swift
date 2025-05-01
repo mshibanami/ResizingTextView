@@ -176,7 +176,7 @@ import SwiftUI
     func resetTypingAttributes(of textView: NSTextView) {
         textView.typingAttributes = [
             .font: font,
-            .foregroundColor: UXColor(foregroundColor)
+            .foregroundColor: UXColor(foregroundColor),
         ]
     }
 
@@ -213,6 +213,9 @@ import SwiftUI
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
             if replacementString == "\n", !swiftUIView.canHaveNewLineCharacters {
                 return false
+            }
+            if let _ = replacementString, replacementString != "" {
+                swiftUIView.resetTypingAttributes(of: textView)
             }
             return true
         }
@@ -251,7 +254,6 @@ import SwiftUI
             let newString = nsView.string
             if swiftUIView.text != newString {
                 swiftUIView.text = newString
-                swiftUIView.resetTypingAttributes(of: nsView)
             }
             let newRanges = nsView.selectedRanges
             if selectedRanges != newRanges {
