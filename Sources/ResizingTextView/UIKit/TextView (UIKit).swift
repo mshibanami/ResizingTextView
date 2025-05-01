@@ -136,7 +136,6 @@ import UIKit
 
         if needsInvalidateIntrinsicContentSize, !isScrollable {
             view.invalidateIntrinsicContentSize()
-            view.layoutIfNeeded()
         }
     }
 
