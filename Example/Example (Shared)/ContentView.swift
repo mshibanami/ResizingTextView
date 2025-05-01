@@ -112,6 +112,8 @@ struct ContentView: View {
                                         attributes: [
                                             .font: UXFont.boldSystemFont(ofSize: 16),
                                             .foregroundColor: UXColor.systemRed,
+                                            .underlineColor: UXColor.systemRed,
+                                            .underlineStyle: NSUnderlineStyle.thick.rawValue
                                         ]
                                     )
                                 }
