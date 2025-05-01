@@ -9,6 +9,7 @@ import UIKit
     
     struct Parameters {
         var text: Binding<String>
+        var decorations: [TextDecoration]
 #if !os(tvOS)
         var isEditable: Bool
 #endif
@@ -24,6 +25,7 @@ import UIKit
     }
     
     @Binding private var text: String
+    var decorations: [TextDecoration]
 #if !os(tvOS)
     private var isEditable: Bool
 #endif
@@ -40,6 +42,7 @@ import UIKit
     
     init(parameters: Parameters) {
         _text = parameters.text
+        self.decorations = parameters.decorations
         self.isScrollable = parameters.isScrollable
 #if !os(tvOS)
         self.isEditable = parameters.isEditable
@@ -55,7 +58,13 @@ import UIKit
     }
     
     func makeUIView(context: Context) -> CustomTextView {
-        let view = CustomTextView()
+        let textStorage = DecoratableTextStorage()
+        let layoutManager = NSLayoutManager()
+        let textContainer = NSTextContainer()
+        textContainer.widthTracksTextView = true
+        textStorage.addLayoutManager(layoutManager)
+        layoutManager.addTextContainer(textContainer)
+        let view = CustomTextView(textContainer: textContainer)
         view.setContentHuggingPriority(.defaultHigh, for: .vertical)
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
@@ -74,16 +83,17 @@ import UIKit
 
         view.hasDynamicHeight = !isScrollable
         view.clipsToBounds = isScrollable
-
+        
         if view.text != text {
             view.text = text
-            needsInvalidateIntrinsicContentSize = true
         }
-        if view.font != font {
-            view.font = font
-        }
-        if view.textColor != UIColor(foregroundColor) {
-            view.textColor = UIColor(foregroundColor)
+        
+        if let textStorage = view.textStorage as? DecoratableTextStorage {
+            textStorage.attributionMap = .init(
+                defaultFont: font,
+                defaultForegroundColor: UIColor(foregroundColor),
+                decorations: decorations
+            )
         }
 #if !os(tvOS)
         if view.isEditable != isEditable {
@@ -134,6 +144,13 @@ import UIKit
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
+    
+    func resetTypingAttributes(of textView: UITextView) {
+        var newTypingAttributes = textView.typingAttributes
+        newTypingAttributes[.font] = font
+        newTypingAttributes[.foregroundColor] = UIColor(foregroundColor)
+        textView.typingAttributes = newTypingAttributes
+    }
 
     final class Coordinator: NSObject, UITextViewDelegate {
         var parent: TextView
@@ -149,7 +166,10 @@ import UIKit
                 textView.text.removeAll(where: { $0 == "\n" })
             }
 
-            parent.text = textView.text
+            if textView.text != parent.text {
+                parent.text = textView.text
+                parent.resetTypingAttributes(of: textView)
+            }
 
             if selectedRange != textView.selectedRange {
                 selectedRange = textView.selectedRange
@@ -169,8 +189,8 @@ class CustomTextView: UITextView {
         }
     }
 
-    init() {
-        super.init(frame: .zero, textContainer: nil)
+    init(textContainer: NSTextContainer? = nil) {
+        super.init(frame: .zero, textContainer: textContainer)
         isScrollEnabled = true
     }
 
