@@ -2,12 +2,15 @@
 
 #if canImport(AppKit)
 import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 @MainActor
 final class DecoratableTextStorage: NSTextStorage {
     struct AttributionMap: Equatable {
-        var defaultFont: NSFont?
-        var defaultForegroundColor: NSColor?
+        var defaultFont: UXFont?
+        var defaultForegroundColor: UXColor?
         var decorations: [TextDecoration] = []
     }
     
@@ -67,10 +70,3 @@ final class DecoratableTextStorage: NSTextStorage {
         endEditing()
     }
 }
-
-extension Range where Bound == String.Index {
-    func isValid(in string: String) -> Bool {
-        lowerBound >= string.startIndex && upperBound <= string.endIndex
-    }
-}
-#endif

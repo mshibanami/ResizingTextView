@@ -134,11 +134,10 @@ import SwiftUI
             textView.string = text
         }
         
-        let nsForegroundColor = NSColor(foregroundColor)
         if let textStorage = textView.textStorage as? DecoratableTextStorage {
             textStorage.attributionMap = .init(
                 defaultFont: font,
-                defaultForegroundColor: nsForegroundColor,
+                defaultForegroundColor: NSColor(foregroundColor),
                 decorations: decorations
             )
         }

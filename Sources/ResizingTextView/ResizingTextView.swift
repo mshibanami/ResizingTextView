@@ -202,6 +202,7 @@ import SwiftUI
 #if os(tvOS)
             let parameters = TextView.Parameters(
                 text: $text,
+                decorations: decorations,
                 isScrollable: isScrollable,
                 isSelectable: isSelectable,
                 lineLimit: lineLimit ?? .max,
@@ -215,6 +216,7 @@ import SwiftUI
 #else
             let parameters = TextView.Parameters(
                 text: $text,
+                decorations: decorations,
                 isEditable: isEditable,
                 isScrollable: isScrollable,
                 isSelectable: isSelectable,

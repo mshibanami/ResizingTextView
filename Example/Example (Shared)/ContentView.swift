@@ -8,6 +8,17 @@
 import ResizingTextView
 import SwiftUI
 
+#if canImport(AppKit)
+import AppKit
+typealias UXColor = NSColor
+typealias UXFont = NSFont
+#elseif canImport(UIKit)
+import UIKit
+typealias UXColor = UIColor
+typealias UXFont = UIFont
+#endif
+
+
 struct ContentView: View {
     @State var text1 = ""
     @State var text2 = ""
@@ -96,18 +107,19 @@ struct ContentView: View {
                     .decorations({
                         let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
                         let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
-                        let decorations: [TextDecoration] = sequences.compactMap {
-                            guard let range = Range($0.range, in: text6) else {
-                                return nil
+                        let decorations: [TextDecoration] = sequences
+                            .compactMap { sequence -> TextDecoration? in
+                                guard let range = Range(sequence.range, in: text6) else {
+                                    return nil
+                                }
+                                return TextDecoration(
+                                    range: range,
+                                    attributes: [
+                                        .font: UXFont.boldSystemFont(ofSize: 16),
+                                        .foregroundColor: UXColor.systemRed,
+                                    ]
+                                )
                             }
-                            return TextDecoration(
-                                range: range,
-                                attributes: [
-                                    .font: NSFont.boldSystemFont(ofSize: 16),
-                                    .foregroundColor: NSColor.systemRed,
-                                ]
-                            )
-                        }
                         return decorations
                     }())
                 }
