@@ -131,7 +131,6 @@ import UIKit
 
         if needsInvalidateIntrinsicContentSize, !isScrollable {
             view.invalidateIntrinsicContentSize()
-            view.layoutIfNeeded()
         }
     }
 
@@ -197,6 +196,7 @@ class CustomTextView: UITextView {
         didSet {
             if hasDynamicHeight {
                 invalidateIntrinsicContentSize()
+                layoutIfNeeded()
             }
         }
     }
