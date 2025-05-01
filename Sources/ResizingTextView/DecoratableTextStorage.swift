@@ -29,13 +29,33 @@ final class DecoratableTextStorage: NSTextStorage {
         backing.attributes(at: location, effectiveRange: range)
     }
 
+    override func processEditing() {
+        super.processEditing()
+        applyDecorationsIfNeeded()
+    }
+    
     override func replaceCharacters(in range: NSRange, with str: String) {
         beginEditing()
         backing.replaceCharacters(in: range, with: str)
-        appliedAttributionMap = .init()
-        edited([.editedCharacters, .editedAttributes],
-               range: range,
-               changeInLength: (str as NSString).length - range.length)
+        let updatedDecorations = appliedAttributionMap.decorations.filter { old in
+            guard old.range.isValid(in: string) else {
+                return false
+            }
+            let oldRange = NSRange(old.range, in: backing.string)
+            if let overlap = oldRange.intersection(range),
+               overlap.length > 0 {
+                return false
+            } else {
+                return true
+            }
+        }
+        appliedAttributionMap.decorations = updatedDecorations
+        let delta = (str as NSString).length - range.length
+        edited(
+            [.editedCharacters, .editedAttributes],
+            range: range,
+            changeInLength: delta
+        )
         endEditing()
     }
 
