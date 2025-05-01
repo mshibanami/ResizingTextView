@@ -140,10 +140,10 @@ import UIKit
     }
     
     func resetTypingAttributes(of textView: UITextView) {
-        var newTypingAttributes = textView.typingAttributes
-        newTypingAttributes[.font] = font
-        newTypingAttributes[.foregroundColor] = UIColor(foregroundColor)
-        textView.typingAttributes = newTypingAttributes
+        textView.typingAttributes = [
+            .font: font,
+            .foregroundColor: UXColor(foregroundColor)
+        ]
     }
 
     final class Coordinator: NSObject, UITextViewDelegate {
