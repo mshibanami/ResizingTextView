@@ -18,7 +18,6 @@ typealias UXColor = UIColor
 typealias UXFont = UIFont
 #endif
 
-
 struct ContentView: View {
     @State var text1 = ""
     @State var text2 = ""
@@ -90,38 +89,34 @@ struct ContentView: View {
                 }
 #endif
                 ExampleSection("Customized textContentInset") {
-                    ResizingTextView(
-                        text: $text5
-                    )
+                    ResizingTextView(text: $text5)
 #if canImport(AppKit)
-                    .textContainerInset(CGSize(width: 40, height: 10))
+                        .textContainerInset(CGSize(width: 40, height: 10))
 #elseif canImport(UIKit)
-                    .textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
+                        .textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
 #endif
                 }
                 
-                ExampleSection("Decoration") {
-                    ResizingTextView(
-                        text: $text6,
-                    )
-                    .decorations({
-                        let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
-                        let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
-                        let decorations: [TextDecoration] = sequences
-                            .compactMap { sequence -> TextDecoration? in
-                                guard let range = Range(sequence.range, in: text6) else {
-                                    return nil
+                ExampleSection("Decorating specific parts of the text") {
+                    ResizingTextView(text: $text6)
+                        .decorations({
+                            let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
+                            let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
+                            let decorations: [TextDecoration] = sequences
+                                .compactMap { sequence -> TextDecoration? in
+                                    guard let range = Range(sequence.range, in: text6) else {
+                                        return nil
+                                    }
+                                    return TextDecoration(
+                                        range: range,
+                                        attributes: [
+                                            .font: UXFont.boldSystemFont(ofSize: 16),
+                                            .foregroundColor: UXColor.systemRed,
+                                        ]
+                                    )
                                 }
-                                return TextDecoration(
-                                    range: range,
-                                    attributes: [
-                                        .font: UXFont.boldSystemFont(ofSize: 16),
-                                        .foregroundColor: UXColor.systemRed,
-                                    ]
-                                )
-                            }
-                        return decorations
-                    }())
+                            return decorations
+                        }())
                 }
             }
             .scenePadding()
