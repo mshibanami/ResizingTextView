@@ -155,6 +155,10 @@ import UIKit
         }
                 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            if text == "\n",
+               !swiftUIView.canHaveNewLineCharacters {
+                return false
+            }
             swiftUIView.resetTypingAttributes(of: textView)
             return true
         }
