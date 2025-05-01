@@ -68,6 +68,7 @@ import UIKit
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.delegate = context.coordinator
+        resetTypingAttributes(of: view)
         updateUIView(view, context: context)
         return view
     }
