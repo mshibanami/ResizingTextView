@@ -248,6 +248,21 @@ import SwiftUI
 #endif
     }
     
+    func makeAttributedString() -> AttributedString {
+        let base = NSMutableAttributedString(
+            string: text.isEmpty ? " " : text,
+            attributes: [
+                .font: font,
+                .foregroundColor: foregroundColor,
+            ]
+        )
+        for decoration in decorations where decoration.range.isValid(in: text) {
+            let nsRange = NSRange(decoration.range, in: text)
+            base.addAttributes(decoration.attributes, range: nsRange)
+        }
+        return AttributedString(base)
+    }
+    
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
         var result = lhs.text == rhs.text
             && lhs.decorations == rhs.decorations
@@ -269,21 +284,6 @@ import SwiftUI
         result = result && lhs.autocapitalizationType == rhs.autocapitalizationType
 #endif
         return result
-    }
-    
-    func makeAttributedString() -> AttributedString {
-        let base = NSMutableAttributedString(
-            string: text.isEmpty ? " " : text,
-            attributes: [
-                .font: font,
-                .foregroundColor: foregroundColor,
-            ]
-        )
-        for decoration in decorations where decoration.range.isValid(in: text) {
-            let nsRange = NSRange(decoration.range, in: text)
-            base.addAttributes(decoration.attributes, range: nsRange)
-        }
-        return AttributedString(base)
     }
 }
 
