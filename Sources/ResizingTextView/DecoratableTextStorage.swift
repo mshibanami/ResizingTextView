@@ -71,12 +71,7 @@ final class DecoratableTextStorage: NSTextStorage {
             return
         }
         beginEditing()
-        for old in appliedAttributionMap.decorations where old.range.isValid(in: string) {
-            let nsRange = NSRange(old.range, in: string)
-            for key in old.attributes.keys {
-                removeAttribute(key, range: nsRange)
-            }
-        }
+        setAttributes([:], range: NSRange(location: 0, length: string.utf16.count))
         if let font = attributionMap.defaultFont {
             addAttribute(.font, value: font, range: NSRange(location: 0, length: string.utf16.count))
         }
