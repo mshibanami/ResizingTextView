@@ -15,7 +15,9 @@ final class DecoratableTextStorage: NSTextStorage {
     }
     
     var attributionMap = AttributionMap() {
-        didSet { applyDecorationsIfNeeded() }
+        didSet {
+            applyDecorations(over: string.utf16FullRange)
+        }
     }
         
     private let backing = NSMutableAttributedString()
@@ -30,26 +32,28 @@ final class DecoratableTextStorage: NSTextStorage {
     }
 
     override func processEditing() {
+        let dirty = editedRange
+
+        if let context = NSTextInputContext.current,
+           context.client.markedRange().length > 0 {
+            super.processEditing()
+            return
+        }
+
+        if attributionMap != appliedAttributionMap {
+            applyDecorations(over: string.utf16FullRange)
+        } else if editedMask.contains(.editedCharacters),
+                  dirty.length > 0 {
+            applyDecorations(over: dirty)
+        }
+
         super.processEditing()
-        applyDecorationsIfNeeded()
     }
     
     override func replaceCharacters(in range: NSRange, with str: String) {
         beginEditing()
         backing.replaceCharacters(in: range, with: str)
-
-        let newLength = (str as NSString).length
-        let clearRange = NSRange(location: range.location, length: newLength)
-        backing.setAttributes([:], range: clearRange)
-
-        let updated = appliedAttributionMap.decorations
-            .filter { decoration in
-                decoration.range.isValid(in: string) &&
-                    NSIntersectionRange(NSRange(decoration.range, in: string), clearRange).length == 0
-            }
-        appliedAttributionMap.decorations = updated
-
-        let delta = newLength - range.length
+        let delta = (str as NSString).length - range.length
         edited([.editedCharacters, .editedAttributes], range: range, changeInLength: delta)
         endEditing()
     }
@@ -61,22 +65,31 @@ final class DecoratableTextStorage: NSTextStorage {
         endEditing()
     }
 
-    private func applyDecorationsIfNeeded() {
-        guard attributionMap != appliedAttributionMap else {
-            return
-        }
+    private func applyDecorations(over range: NSRange) {
         beginEditing()
-        setAttributes([:], range: NSRange(location: 0, length: string.utf16.count))
+        backing.setAttributes([:], range: range)
         if let font = attributionMap.defaultFont {
-            addAttribute(.font, value: font, range: NSRange(location: 0, length: string.utf16.count))
+            addAttribute(.font, value: font, range: range)
         }
         if let color = attributionMap.defaultForegroundColor {
-            addAttribute(.foregroundColor, value: color, range: NSRange(location: 0, length: string.utf16.count))
+            addAttribute(.foregroundColor, value: color, range: range)
         }
-        for new in attributionMap.decorations where new.range.isValid(in: string) {
-            addAttributes(new.attributes, range: NSRange(new.range, in: string))
+        for decoration in attributionMap.decorations where
+            decoration.range.isValid(in: string) {
+            let decoRange = NSRange(decoration.range, in: string)
+            let overlap = NSIntersectionRange(decoRange, range)
+            guard overlap.length > 0 else {
+                continue
+            }
+            addAttributes(decoration.attributes, range: overlap)
         }
         appliedAttributionMap = attributionMap
         endEditing()
+    }
+}
+
+extension String {
+    var utf16FullRange: NSRange {
+        NSRange(location: 0, length: utf16.count)
     }
 }
