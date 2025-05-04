@@ -33,13 +33,6 @@ final class DecoratableTextStorage: NSTextStorage {
 
     override func processEditing() {
         let dirty = editedRange
-
-        if let context = NSTextInputContext.current,
-           context.client.markedRange().length > 0 {
-            super.processEditing()
-            return
-        }
-
         if attributionMap != appliedAttributionMap {
             applyDecorations(over: string.utf16FullRange)
         } else if editedMask.contains(.editedCharacters),
