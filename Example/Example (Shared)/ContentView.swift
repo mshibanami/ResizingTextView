@@ -25,6 +25,7 @@ struct ContentView: View {
     @State var text4 = ""
     @State var text5 = "I have greater horizontal padding than the others."
     @State var text6 = "Capital Letters are EMPHASIZED."
+    @State var text7 = "The 3rd character is emphasized."
     
     var body: some View {
         ScrollView {
@@ -98,27 +99,47 @@ struct ContentView: View {
                 }
                 
                 ExampleSection("Decorating specific parts of the text") {
-                    ResizingTextView(text: $text6, canHaveNewLineCharacters: false)
-                        .decorations({
-                            let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
-                            let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
-                            let decorations: [TextDecoration] = sequences
-                                .compactMap { sequence -> TextDecoration? in
-                                    guard let range = Range(sequence.range, in: text6) else {
-                                        return nil
+                    VStack {
+                        ResizingTextView(text: $text6, canHaveNewLineCharacters: false)
+                            .decorations({
+                                let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
+                                let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
+                                let decorations: [TextDecoration] = sequences
+                                    .compactMap { sequence -> TextDecoration? in
+                                        guard let range = Range(sequence.range, in: text6) else {
+                                            return nil
+                                        }
+                                        return TextDecoration(
+                                            range: range,
+                                            attributes: [
+                                                .font: UXFont.boldSystemFont(ofSize: 16),
+                                                .foregroundColor: UXColor.systemRed,
+                                                .underlineColor: UXColor.systemRed,
+                                                .underlineStyle: NSUnderlineStyle.thick.rawValue,
+                                            ]
+                                        )
                                     }
-                                    return TextDecoration(
-                                        range: range,
-                                        attributes: [
-                                            .font: UXFont.boldSystemFont(ofSize: 16),
-                                            .foregroundColor: UXColor.systemRed,
-                                            .underlineColor: UXColor.systemRed,
-                                            .underlineStyle: NSUnderlineStyle.thick.rawValue
-                                        ]
-                                    )
+                                return decorations
+                            }())
+                        
+                        ResizingTextView(text: $text7, canHaveNewLineCharacters: false)
+                            .decorations({
+                                guard text7.count > 2 else {
+                                    return []
                                 }
-                            return decorations
-                        }())
+                                let start = text7.index(text7.startIndex, offsetBy: 2)
+                                let decoration = TextDecoration(
+                                    range: start..<text7.index(after: start),
+                                    attributes: [
+                                        .font: UXFont.boldSystemFont(ofSize: 16),
+                                        .foregroundColor: UXColor.systemRed,
+                                        .underlineColor: UXColor.systemRed,
+                                        .underlineStyle: NSUnderlineStyle.thick.rawValue,
+                                    ]
+                                )
+                                return [decoration]
+                            }())
+                    }
                 }
             }
             .scenePadding()
