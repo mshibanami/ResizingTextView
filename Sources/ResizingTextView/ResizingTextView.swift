@@ -5,6 +5,10 @@ import Foundation
 import SwiftUI
 
 @MainActor public struct ResizingTextView: View, Equatable {
+#if canImport(AppKit)
+    @Environment(\.controlActiveState) var controlActiveState
+#endif
+    
     @Binding var text: String
     var placeholder: String?
 #if !os(tvOS)
@@ -179,7 +183,9 @@ import SwiftUI
         )
         .overlay(RoundedRectangle(cornerRadius: 10)
             .stroke(Color.accentColor.opacity(0.5), lineWidth: 4)
-            .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03))
+            .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03)
+            .opacity(controlActiveState == .inactive ? 0 : 1)
+        )
 #elseif canImport(UIKit)
         ZStack(alignment: .topLeading) {
             /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the
