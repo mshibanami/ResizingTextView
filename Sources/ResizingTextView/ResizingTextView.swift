@@ -6,7 +6,7 @@ import SwiftUI
 
 @MainActor public struct ResizingTextView: View, Equatable {
 #if canImport(AppKit)
-    @Environment(\.controlActiveState) var controlActiveState
+    @Environment(\.controlActiveState) private var controlActiveState
 #endif
     
     @Binding var text: String
