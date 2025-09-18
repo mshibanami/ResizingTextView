@@ -176,8 +176,11 @@ class CustomTextView: UITextView {
 
     override open var contentSize: CGSize {
         didSet {
-            if hasDynamicHeight {
-                invalidateIntrinsicContentSize()
+            if hasDynamicHeight,
+               contentSize != oldValue {
+                Task.detached { @MainActor [weak self] in
+                    self?.invalidateIntrinsicContentSize()
+                }
             }
         }
     }
