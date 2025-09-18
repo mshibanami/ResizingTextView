@@ -211,7 +211,7 @@ class CustomTextView: UITextView {
 
     override open var intrinsicContentSize: CGSize {
         return hasDynamicHeight
-            ? contentSize
+            ? CGSize(width: UIView.noIntrinsicMetric, height: contentSize.height)
             : super.intrinsicContentSize
     }
 }
