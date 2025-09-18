@@ -2,7 +2,7 @@
 
 extension Range where Bound == String.Index {
     func isValid(in string: String) -> Bool {
-        lowerBound >= string.startIndex &&
-        upperBound <= string.endIndex
+        lowerBound >= string.startIndex
+            && upperBound <= string.endIndex
     }
 }
