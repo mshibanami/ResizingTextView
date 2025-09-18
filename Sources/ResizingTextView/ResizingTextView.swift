@@ -4,7 +4,7 @@ import Combine
 import Foundation
 import SwiftUI
 
-@MainActor public struct ResizingTextView: View, Equatable {
+@MainActor public struct ResizingTextView: View, @MainActor Equatable {
 #if canImport(AppKit)
     @Environment(\.controlActiveState) private var controlActiveState
 #endif
