@@ -70,6 +70,11 @@ import UIKit
         textView.delegate = context.coordinator
         resetTypingAttributes(of: textView)
         updateUIView(textView, context: context)
+        if isScrollable {
+            Task.detached { @MainActor [weak textView] in
+                textView?.setContentOffset(.zero, animated: false)
+            }
+        }
         return textView
     }
 
