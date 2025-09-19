@@ -61,6 +61,11 @@ import UIKit
         view.backgroundColor = .clear
         view.delegate = context.coordinator
         updateUIView(view, context: context)
+        if isScrollable {
+            Task.detached { @MainActor [weak view] in
+                view?.setContentOffset(.zero, animated: false)
+            }
+        }
         return view
     }
 
