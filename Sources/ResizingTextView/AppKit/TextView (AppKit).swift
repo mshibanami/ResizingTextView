@@ -7,6 +7,7 @@ import SwiftUI
     static let defaultForegroundColor = Color(NSColor.textColor)
 
     @Binding var text: String
+    var decorations: [TextDecoration]
     var placeholder: String?
     var isEditable: Bool
     var isScrollable: Bool
@@ -22,6 +23,7 @@ import SwiftUI
 
     init(
         _ text: Binding<String>,
+        decorations: [TextDecoration],
         placeholder: String?,
         isEditable: Bool,
         isScrollable: Bool,
@@ -36,6 +38,7 @@ import SwiftUI
         textContainerInset: CGSize
     ) {
         self._text = text
+        self.decorations = decorations
         self.placeholder = placeholder
         self.isEditable = isEditable
         self.isScrollable = isScrollable
@@ -51,15 +54,27 @@ import SwiftUI
     }
 
     func makeNSView(context: Context) -> TextEnclosingScrollView {
-        let textView = CustomTextView()
+        let textStorage = DecoratableTextStorage()
+        let layoutManager = NSLayoutManager()
+        let textContainer = NSTextContainer()
+        textContainer.containerSize = .greatestFiniteMagnitude
+        textContainer.widthTracksTextView = true
+        textStorage.addLayoutManager(layoutManager)
+        layoutManager.addTextContainer(textContainer)
+        let textView = CustomTextView(frame: .zero, textContainer: textContainer)
+        textView.minSize = .zero
+        textView.maxSize = .greatestFiniteMagnitude
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
         textView.delegate = context.coordinator
         textView.textStorage?.delegate = context.coordinator
-        textView.isRichText = false
+        textView.isRichText = true
         textView.allowsUndo = true
         textView.autoresizingMask = [.width]
         textView.translatesAutoresizingMaskIntoConstraints = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
+        resetTypingAttributes(of: textView)
         textView.onFocusChanged = { [weak textView] isFocused in
             if isFocused {
                 if text.isEmpty {
@@ -79,6 +94,7 @@ import SwiftUI
         let scrollView = TextEnclosingScrollView()
         scrollView.documentView = textView
         scrollView.drawsBackground = false
+        scrollView.hasVerticalScroller = isScrollable
         
         context.coordinator.nsView = textView
 
@@ -90,7 +106,7 @@ import SwiftUI
             assertionFailure()
             return
         }
-
+        
         if view.isScrollable != isScrollable || view.hasVerticalScroller != isScrollable {
             view.isScrollable = isScrollable
             view.hasVerticalScroller = isScrollable
@@ -113,14 +129,17 @@ import SwiftUI
         } else {
             textView.placeholderAttributedString = nil
         }
+        
         if textView.string != text {
             textView.string = text
         }
-        if textView.font != font {
-            textView.font = font
-        }
-        if textView.textColor != NSColor(foregroundColor) {
-            textView.textColor = NSColor(foregroundColor)
+        
+        if let textStorage = textView.textStorage as? DecoratableTextStorage {
+            textStorage.attributionMap = .init(
+                defaultFont: font,
+                defaultForegroundColor: NSColor(foregroundColor),
+                decorations: decorations
+            )
         }
         let newBackgroundColor: NSColor = isEditable ? .textBackgroundColor : .clear
         if textView.backgroundColor != newBackgroundColor {
@@ -149,9 +168,16 @@ import SwiftUI
             textView.selectedRanges = context.coordinator.selectedRanges
         }
     }
-
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(swiftUIView: self)
+    }
+    
+    func resetTypingAttributes(of textView: NSTextView) {
+        textView.typingAttributes = [
+            .font: font,
+            .foregroundColor: UXColor(foregroundColor),
+        ]
     }
 
     final class Coordinator: NSObject, NSTextViewDelegate, NSTextStorageDelegate {
@@ -187,6 +213,9 @@ import SwiftUI
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
             if replacementString == "\n", !swiftUIView.canHaveNewLineCharacters {
                 return false
+            }
+            if let _ = replacementString, replacementString != "" {
+                swiftUIView.resetTypingAttributes(of: textView)
             }
             return true
         }
@@ -255,6 +284,7 @@ class TextEnclosingScrollView: NSScrollView {
     }
 }
 
+@MainActor
 private class CustomTextView: NSTextView {
     var onFocusChanged: ((Bool) -> Void)?
 
@@ -276,5 +306,12 @@ private class CustomTextView: NSTextView {
         }
         return result
     }
+}
+
+extension NSSize {
+    static let greatestFiniteMagnitude = NSSize(
+        width: CGFloat.greatestFiniteMagnitude,
+        height: CGFloat.greatestFiniteMagnitude
+    )
 }
 #endif

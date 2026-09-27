@@ -1,6 +1,20 @@
 # ResizingTextView
 
-This is a SwiftUI resizing text view for iOS and macOS.
+This is a SwiftUI text view that wraps the native UITextView (iOS) and NSTextView (macOS), providing:
+
+- Automatic height adjustment to fit its content
+- Placeholder support
+- Custom text decorations
+- Configurable line limits
+- Optional scrolling
+- Editable and selectable text
+
+> [!NOTE]
+> Initially `ResizingTextView` was just for automatic height adjustment, but now it has many features.
+> Sorry for the confusing name, but to avoid breaking changes, I decided to keep it as `ResizingTextView`.
+
+> [!NOTE]
+> Since iOS 16, SwiftUI has officially supported multiline text in `TextField`.
 
 ## Usage
 
@@ -70,6 +84,26 @@ ResizingTextView(
 .textContainerInset(UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 40))
 #endif
 }
+
+ResizingTextView(text: $text6)
+    .decorations({
+        let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
+        let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
+        let decorations: [TextDecoration] = sequences
+            .compactMap { sequence -> TextDecoration? in
+                guard let range = Range(sequence.range, in: text6) else {
+                    return nil
+                }
+                return TextDecoration(
+                    range: range,
+                    attributes: [
+                        .font: UXFont.boldSystemFont(ofSize: 16),
+                        .foregroundColor: UXColor.systemRed,
+                    ]
+                )
+            }
+        return decorations
+    }())
 ```
 
 ## Demo
