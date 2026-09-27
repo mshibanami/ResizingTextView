@@ -164,14 +164,14 @@ import SwiftUI
             focusesNextKeyViewByTabKey: focusesNextKeyViewByTabKey,
             foregroundColor: Color(foregroundColor),
             onFocusChanged: { isFocused in
-                if isFocused {
-                    DispatchQueue.main.async {
+                DispatchQueue.main.async {
+                    if isFocused {
                         withAnimation(Animation.easeInOut(duration: 0.2)) {
-                            self.isFocused = isFocused
+                            self.isFocused = true
                         }
+                    } else {
+                        self.isFocused = false
                     }
-                } else {
-                    self.isFocused = false
                 }
             },
             onInsertNewline: onInsertNewline,
