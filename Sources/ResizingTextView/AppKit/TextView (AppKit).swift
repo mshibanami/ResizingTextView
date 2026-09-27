@@ -73,7 +73,7 @@ import SwiftUI
         textView.translatesAutoresizingMaskIntoConstraints = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
-        resetTypingAttributes(of: textView)
+        editingRules.resetTypingAttributes(of: textView)
         textView.onFocusChanged = { [weak textView, weak coordinator = context.coordinator] isFocused in
             guard let parent = coordinator?.swiftUIView else {
                 return
@@ -138,14 +138,7 @@ import SwiftUI
             textView.placeholderAttributedString = nil
         }
         
-        if textView.string != text {
-            let selectedRanges = textView.selectedRanges
-            textView.replaceStringDiscardingUndo(text)
-            let length = (text as NSString).length
-            textView.selectedRanges = selectedRanges.map {
-                NSValue(range: $0.rangeValue.clamped(toLength: length))
-            }
-        }
+        TextEditingRules.applyExternalText(text, to: textView)
         
         if let textStorage = textView.textStorage as? DecoratableTextStorage {
             textStorage.attributionMap = .init(
@@ -181,11 +174,12 @@ import SwiftUI
         Coordinator(swiftUIView: self)
     }
     
-    func resetTypingAttributes(of textView: NSTextView) {
-        textView.typingAttributes = [
-            .font: font,
-            .foregroundColor: UXColor(foregroundColor),
-        ]
+    var editingRules: TextEditingRules {
+        TextEditingRules(
+            canHaveNewLineCharacters: canHaveNewLineCharacters,
+            font: font,
+            foregroundColor: UXColor(foregroundColor)
+        )
     }
 
     @MainActor final class Coordinator: NSObject, NSTextViewDelegate {
@@ -232,19 +226,10 @@ import SwiftUI
         }
         
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            if let replacementString,
-               !swiftUIView.canHaveNewLineCharacters,
-               replacementString.containsNewlines {
-                let sanitized = replacementString.removingNewlines
-                if !sanitized.isEmpty {
-                    textView.insertText(sanitized, replacementRange: affectedCharRange)
-                }
-                return false
+            guard let replacementString else {
+                return true
             }
-            if let _ = replacementString, replacementString != "" {
-                swiftUIView.resetTypingAttributes(of: textView)
-            }
-            return true
+            return swiftUIView.editingRules.shouldChangeText(of: textView, in: affectedCharRange, replacementText: replacementString)
         }
         
         func textDidChange(_ notification: Notification) {
@@ -259,14 +244,7 @@ import SwiftUI
             guard let nsView else {
                 return
             }
-            if !swiftUIView.canHaveNewLineCharacters,
-               nsView.string.containsNewlines {
-                nsView.replaceStringDiscardingUndo(nsView.string.removingNewlines)
-            }
-            let newString = nsView.string
-            if swiftUIView.text != newString {
-                swiftUIView.text = newString
-            }
+            swiftUIView.editingRules.textDidChange(in: nsView, binding: swiftUIView.$text)
         }
     }
 }
@@ -313,15 +291,6 @@ private class CustomTextView: NSTextView {
             onFocusChanged?(false)
         }
         return result
-    }
-}
-
-private extension NSTextView {
-    func replaceStringDiscardingUndo(_ newString: String) {
-        string = newString
-        if let textStorage {
-            undoManager?.removeAllActions(withTarget: textStorage)
-        }
     }
 }
 

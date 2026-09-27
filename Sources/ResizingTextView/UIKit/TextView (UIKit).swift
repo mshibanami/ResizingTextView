@@ -68,7 +68,7 @@ import UIKit
         textView.textContainer.lineFragmentPadding = 0
         textView.backgroundColor = .clear
         textView.delegate = context.coordinator
-        resetTypingAttributes(of: textView)
+        editingRules.resetTypingAttributes(of: textView)
         updateUIView(textView, context: context)
         if isScrollable {
             DispatchQueue.main.async { [weak textView] in
@@ -86,11 +86,7 @@ import UIKit
         textView.hasDynamicHeight = !isScrollable
         textView.clipsToBounds = isScrollable
         
-        if textView.text != text {
-            let selectedRange = textView.selectedRange
-            textView.text = text
-            textView.selectedRange = selectedRange.clamped(toLength: (text as NSString).length)
-        }
+        TextEditingRules.applyExternalText(text, to: textView)
         
         if let textStorage = textView.textStorage as? DecoratableTextStorage {
             textStorage.attributionMap = .init(
@@ -143,11 +139,12 @@ import UIKit
         Coordinator(self)
     }
     
-    func resetTypingAttributes(of textView: UITextView) {
-        textView.typingAttributes = [
-            .font: font,
-            .foregroundColor: UXColor(foregroundColor)
-        ]
+    var editingRules: TextEditingRules {
+        TextEditingRules(
+            canHaveNewLineCharacters: canHaveNewLineCharacters,
+            font: font,
+            foregroundColor: UXColor(foregroundColor)
+        )
     }
 
     @MainActor final class Coordinator: NSObject, UITextViewDelegate {
@@ -158,28 +155,11 @@ import UIKit
         }
                 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            if !swiftUIView.canHaveNewLineCharacters,
-               text.containsNewlines {
-                let sanitized = text.removingNewlines
-                if !sanitized.isEmpty {
-                    swiftUIView.resetTypingAttributes(of: textView)
-                    textView.selectedRange = range
-                    textView.insertText(sanitized)
-                }
-                return false
-            }
-            swiftUIView.resetTypingAttributes(of: textView)
-            return true
+            swiftUIView.editingRules.shouldChangeText(of: textView, in: range, replacementText: text)
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            if !swiftUIView.canHaveNewLineCharacters,
-               textView.text.containsNewlines {
-                textView.text = textView.text.removingNewlines
-            }
-            if textView.text != swiftUIView.text {
-                swiftUIView.text = textView.text
-            }
+            swiftUIView.editingRules.textDidChange(in: textView, binding: swiftUIView.$text)
             textView.invalidateIntrinsicContentSize()
         }
     }
