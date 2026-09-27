@@ -57,6 +57,13 @@ final class DecoratableTextStorage: NSTextStorage {
         backing.attributes(at: location, effectiveRange: range)
     }
 
+    /// The default implementation reads attribute runs through `attributes(at:effectiveRange:)`,
+    /// which scans far beyond `range` when runs are fragmented by font fallback (e.g. CJK text).
+    override func fixAttributes(in range: NSRange) {
+        backing.fixAttributes(in: range)
+        edited(.editedAttributes, range: range, changeInLength: 0)
+    }
+
     override func processEditing() {
         let needsNormalization = isApplyingAttributionMap
             || editedMask.contains(.editedCharacters)
