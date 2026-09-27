@@ -9,39 +9,51 @@ import SwiftUI
 /// starts pointing to other storage. Closures such as `onInsertNewline` are not compared either, so a new
 /// closure takes effect only when another property changes as well.
 @MainActor public struct ResizingTextView: View, @MainActor Equatable {
+    /// Every property that affects the appearance or behavior. Keeping them in this `Equatable`
+    /// struct makes `==` compare new properties without further changes.
+    struct Configuration: Equatable {
+        var placeholder: String?
+#if !os(tvOS)
+        var isEditable: Bool
+#endif
+        var isScrollable: Bool
+        var isSelectable: Bool
+        var lineLimit: Int?
+        var font: UXFont = .preferredFont(forTextStyle: .body)
+        var canHaveNewLineCharacters: Bool
+#if canImport(AppKit)
+        var foregroundColor: UXColor = .labelColor
+#elseif canImport(UIKit)
+        var foregroundColor: UXColor = .label
+#endif
+        var hasGreedyWidth: Bool
+        var decorations: [TextDecoration]
+#if canImport(AppKit)
+        var focusesNextKeyViewByTabKey = true
+        var textContainerInset: CGSize?
+#elseif canImport(UIKit)
+        var autocapitalizationType: UITextAutocapitalizationType = .sentences
+        var textContainerInset: UIEdgeInsets?
+        var keyboardType: UIKeyboardType = .default
+#endif
+    }
+
 #if canImport(AppKit)
     @Environment(\.controlActiveState) private var controlActiveState
 #endif
     
     @Binding var text: String
-    var placeholder: String?
-#if !os(tvOS)
-    var isEditable: Bool
-#endif
-    var isScrollable: Bool
-    var isSelectable: Bool
-    var lineLimit: Int?
-    var font: UXFont = .preferredFont(forTextStyle: .body)
-    var canHaveNewLineCharacters: Bool
-    var foregroundColor: UXColor = defaultLabelColor
-    var hasGreedyWidth: Bool
-    var decorations: [TextDecoration] = []
+    var configuration: Configuration
 #if canImport(AppKit)
-    var focusesNextKeyViewByTabKey: Bool = true
     var onInsertNewline: (() -> Bool)?
-    var textContainerInset: CGSize?
     var effectiveTextContainerInset: CGSize {
-        textContainerInset ?? {
+        configuration.textContainerInset ?? {
             var inset = CGSize(width: -5, height: 0)
-            inset.width += (isEditable ? 9 : 0)
-            inset.height += (isEditable ? 8 : 0)
+            inset.width += (configuration.isEditable ? 9 : 0)
+            inset.height += (configuration.isEditable ? 8 : 0)
             return inset
         }()
     }
-#elseif canImport(UIKit)
-    var autocapitalizationType: UITextAutocapitalizationType = .sentences
-    var textContainerInset: UIEdgeInsets?
-    var keyboardType: UIKeyboardType = .default
 #endif
     
     @Environment(\.layoutDirection) private var layoutDirection
@@ -71,13 +83,15 @@ import SwiftUI
         hasGreedyWidth: Bool = true
     ) {
         self._text = text
-        self.decorations = decorations
-        self.placeholder = placeholder
-        self.isScrollable = isScrollable
-        self.isSelectable = isSelectable
-        self.lineLimit = lineLimit
-        self.canHaveNewLineCharacters = canHaveNewLineCharacters
-        self.hasGreedyWidth = hasGreedyWidth
+        self.configuration = Configuration(
+            placeholder: placeholder,
+            isScrollable: isScrollable,
+            isSelectable: isSelectable,
+            lineLimit: lineLimit,
+            canHaveNewLineCharacters: canHaveNewLineCharacters,
+            hasGreedyWidth: hasGreedyWidth,
+            decorations: decorations
+        )
     }
 #else
     public init(
@@ -92,14 +106,16 @@ import SwiftUI
         hasGreedyWidth: Bool = true
     ) {
         self._text = text
-        self.decorations = decorations
-        self.placeholder = placeholder
-        self.isEditable = isEditable
-        self.isScrollable = isScrollable
-        self.isSelectable = isSelectable
-        self.lineLimit = lineLimit
-        self.canHaveNewLineCharacters = canHaveNewLineCharacters
-        self.hasGreedyWidth = hasGreedyWidth
+        self.configuration = Configuration(
+            placeholder: placeholder,
+            isEditable: isEditable,
+            isScrollable: isScrollable,
+            isSelectable: isSelectable,
+            lineLimit: lineLimit,
+            canHaveNewLineCharacters: canHaveNewLineCharacters,
+            hasGreedyWidth: hasGreedyWidth,
+            decorations: decorations
+        )
     }
 #endif
     
@@ -108,7 +124,7 @@ import SwiftUI
         invisibleSizingText
             .overlay(visibleTextViewWrapper)
 #elseif canImport(UIKit)
-        if hasGreedyWidth {
+        if configuration.hasGreedyWidth {
             visibleTextViewWrapper
         } else {
             invisibleSizingText
@@ -123,9 +139,9 @@ import SwiftUI
         let textViewLineFragmentPadding: CGFloat = 5
 #endif
         Text(makeAttributedString())
-            .lineLimit(lineLimit ?? .max)
+            .lineLimit(configuration.lineLimit ?? .max)
 #if canImport(AppKit)
-            .padding(.bottom, (isEditable && canHaveNewLineCharacters) ? 20 : 0)
+            .padding(.bottom, (configuration.isEditable && configuration.canHaveNewLineCharacters) ? 20 : 0)
             .padding(EdgeInsets(
                 top: effectiveTextContainerInset.height,
                 leading: effectiveTextContainerInset.width + textViewLineFragmentPadding,
@@ -133,19 +149,19 @@ import SwiftUI
                 trailing: effectiveTextContainerInset.width + textViewLineFragmentPadding
             ))
 #elseif canImport(UIKit) && !os(tvOS)
-            .padding(.top, isEditable ? 8 : 2)
-            .padding(.bottom, isEditable ? 8 : 3)
+            .padding(.top, configuration.isEditable ? 8 : 2)
+            .padding(.bottom, configuration.isEditable ? 8 : 3)
 #endif
 #if os(tvOS)
             .frame(
-                maxWidth: hasGreedyWidth ? .infinity : nil,
-                maxHeight: isScrollable ? .infinity : nil,
+                maxWidth: configuration.hasGreedyWidth ? .infinity : nil,
+                maxHeight: configuration.isScrollable ? .infinity : nil,
                 alignment: .topLeading
             )
 #else
             .frame(
-                maxWidth: hasGreedyWidth ? .infinity : nil,
-                maxHeight: (isEditable && isScrollable) ? .infinity : nil,
+                maxWidth: configuration.hasGreedyWidth ? .infinity : nil,
+                maxHeight: (configuration.isEditable && configuration.isScrollable) ? .infinity : nil,
                 alignment: .topLeading
             )
 #endif
@@ -157,16 +173,16 @@ import SwiftUI
 #if canImport(AppKit)
         TextView(
             $text,
-            decorations: decorations,
-            placeholder: placeholder,
-            isEditable: isEditable,
-            isScrollable: isScrollable,
-            isSelectable: isSelectable,
-            lineLimit: lineLimit ?? .max,
-            font: font,
-            canHaveNewLineCharacters: canHaveNewLineCharacters,
-            focusesNextKeyViewByTabKey: focusesNextKeyViewByTabKey,
-            foregroundColor: Color(foregroundColor),
+            decorations: configuration.decorations,
+            placeholder: configuration.placeholder,
+            isEditable: configuration.isEditable,
+            isScrollable: configuration.isScrollable,
+            isSelectable: configuration.isSelectable,
+            lineLimit: configuration.lineLimit ?? .max,
+            font: configuration.font,
+            canHaveNewLineCharacters: configuration.canHaveNewLineCharacters,
+            focusesNextKeyViewByTabKey: configuration.focusesNextKeyViewByTabKey,
+            foregroundColor: Color(configuration.foregroundColor),
             onFocusChanged: { isFocused in
                 DispatchQueue.main.async {
                     if isFocused {
@@ -181,15 +197,15 @@ import SwiftUI
             onInsertNewline: onInsertNewline,
             textContainerInset: effectiveTextContainerInset
         )
-        .background(isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
+        .background(configuration.isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
         .roundedFilledBorder(
-            isEditable ? Color(UXColor.separatorColor) : .clear,
-            width: isEditable ? 1 : 0,
-            cornerRadius: isEditable ? 10 : 0
+            configuration.isEditable ? Color(UXColor.separatorColor) : .clear,
+            width: configuration.isEditable ? 1 : 0,
+            cornerRadius: configuration.isEditable ? 10 : 0
         )
         .overlay(RoundedRectangle(cornerRadius: 10)
             .stroke(Color.accentColor.opacity(0.5), lineWidth: 4)
-            .opacity(isFocused && isEditable ? 1 : 0).scaleEffect(isFocused && isEditable ? 1 : 1.03)
+            .opacity(isFocused && configuration.isEditable ? 1 : 0).scaleEffect(isFocused && configuration.isEditable ? 1 : 1.03)
             .opacity(controlActiveState == .inactive ? 0 : 1)
         )
 #elseif canImport(UIKit)
@@ -197,7 +213,7 @@ import SwiftUI
             /// HACK: In iOS 17, the last sentence of a non-editable text may not be drawn if the textContainerInset is `.zero`. To avoid it, we add this 0.00...1 value to the
             let defaultInsetsForiOS17Bug = UIEdgeInsets(top: 0.00000001, left: 0.00000001, bottom: 0.00000001, right: 0.00000001)
 #if !os(tvOS)
-            let defaultVerticalPadding: CGFloat = isEditable ? 8 : 0
+            let defaultVerticalPadding: CGFloat = configuration.isEditable ? 8 : 0
 #else
             let defaultVerticalPadding: CGFloat = 0
 #endif
@@ -207,46 +223,46 @@ import SwiftUI
                 bottom: defaultInsetsForiOS17Bug.bottom + defaultVerticalPadding,
                 right: defaultInsetsForiOS17Bug.right
             )
-            let effectiveTextContainerInset = textContainerInset ?? defaultInsets
+            let effectiveTextContainerInset = configuration.textContainerInset ?? defaultInsets
             
 #if os(tvOS)
             let parameters = TextView.Parameters(
                 text: $text,
-                decorations: decorations,
-                isScrollable: isScrollable,
-                isSelectable: isSelectable,
-                lineLimit: lineLimit ?? .max,
-                font: font,
-                canHaveNewLineCharacters: canHaveNewLineCharacters,
-                foregroundColor: Color(foregroundColor),
-                autocapitalizationType: autocapitalizationType,
+                decorations: configuration.decorations,
+                isScrollable: configuration.isScrollable,
+                isSelectable: configuration.isSelectable,
+                lineLimit: configuration.lineLimit ?? .max,
+                font: configuration.font,
+                canHaveNewLineCharacters: configuration.canHaveNewLineCharacters,
+                foregroundColor: Color(configuration.foregroundColor),
+                autocapitalizationType: configuration.autocapitalizationType,
                 textContainerInset: effectiveTextContainerInset,
-                keyboardType: keyboardType
+                keyboardType: configuration.keyboardType
             )
 #else
             let parameters = TextView.Parameters(
                 text: $text,
-                decorations: decorations,
-                isEditable: isEditable,
-                isScrollable: isScrollable,
-                isSelectable: isSelectable,
-                lineLimit: lineLimit ?? .max,
-                font: font,
-                canHaveNewLineCharacters: canHaveNewLineCharacters,
-                foregroundColor: Color(foregroundColor),
-                autocapitalizationType: autocapitalizationType,
+                decorations: configuration.decorations,
+                isEditable: configuration.isEditable,
+                isScrollable: configuration.isScrollable,
+                isSelectable: configuration.isSelectable,
+                lineLimit: configuration.lineLimit ?? .max,
+                font: configuration.font,
+                canHaveNewLineCharacters: configuration.canHaveNewLineCharacters,
+                foregroundColor: Color(configuration.foregroundColor),
+                autocapitalizationType: configuration.autocapitalizationType,
                 textContainerInset: effectiveTextContainerInset,
-                keyboardType: keyboardType
+                keyboardType: configuration.keyboardType
             )
 #endif
             TextView(parameters: parameters)
             
-            if let placeholder {
+            if let placeholder = configuration.placeholder {
                 let isLTR = layoutDirection == .leftToRight
                 Text(placeholder)
-                    .font(Font(font))
+                    .font(Font(configuration.font))
                     .lineLimit(1)
-                    .foregroundColor(Color(foregroundColor.withAlphaComponent(0.2)))
+                    .foregroundColor(Color(configuration.foregroundColor.withAlphaComponent(0.2)))
                     .padding(.top, effectiveTextContainerInset.top)
                     .padding(isLTR ? .leading : .trailing, effectiveTextContainerInset.left)
                     .padding(.bottom, effectiveTextContainerInset.bottom)
@@ -262,11 +278,11 @@ import SwiftUI
         let base = NSMutableAttributedString(
             string: text.isEmpty ? " " : text,
             attributes: [
-                .font: font,
-                .foregroundColor: foregroundColor,
+                .font: configuration.font,
+                .foregroundColor: configuration.foregroundColor,
             ]
         )
-        for decoration in decorations where decoration.range.isValid(in: text) {
+        for decoration in configuration.decorations where decoration.range.isValid(in: text) {
             let nsRange = NSRange(decoration.range, in: text)
             base.addAttributes(decoration.attributes, range: nsRange)
         }
@@ -274,42 +290,21 @@ import SwiftUI
     }
     
     public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
-        var result = lhs.text == rhs.text
-            && lhs.decorations == rhs.decorations
-            && lhs.placeholder == rhs.placeholder
-            && lhs.isScrollable == rhs.isScrollable
-            && lhs.isSelectable == rhs.isSelectable
-            && lhs.lineLimit == rhs.lineLimit
-            && lhs.font == rhs.font
-            && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
-            && lhs.foregroundColor == rhs.foregroundColor
-            && lhs.hasGreedyWidth == rhs.hasGreedyWidth
-            && lhs.isFocused == rhs.isFocused
-            && lhs.textContainerInset == rhs.textContainerInset
-#if !os(tvOS)
-        result = result && lhs.isEditable == rhs.isEditable
-#endif
-#if canImport(AppKit)
-        result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
-#elseif canImport(UIKit)
-        result = result && lhs.autocapitalizationType == rhs.autocapitalizationType
-            && lhs.keyboardType == rhs.keyboardType
-#endif
-        return result
+        lhs.text == rhs.text && lhs.configuration == rhs.configuration
     }
 }
 
 public extension ResizingTextView {
     func decorations(_ value: [TextDecoration]) -> Self {
         var newSelf = self
-        newSelf.decorations = value
+        newSelf.configuration.decorations = value
         return newSelf
     }
     
 #if canImport(AppKit)
     func focusesNextKeyViewByTabKey(_ focuses: Bool) -> Self {
         var newSelf = self
-        newSelf.focusesNextKeyViewByTabKey = focuses
+        newSelf.configuration.focusesNextKeyViewByTabKey = focuses
         return newSelf
     }
     
@@ -321,50 +316,50 @@ public extension ResizingTextView {
     
     func foregroundColor(_ color: NSColor) -> Self {
         var newSelf = self
-        newSelf.foregroundColor = color
+        newSelf.configuration.foregroundColor = color
         return newSelf
     }
     
     func font(_ font: NSFont) -> Self {
         var newSelf = self
-        newSelf.font = font
+        newSelf.configuration.font = font
         return newSelf
     }
     
     func textContainerInset(_ inset: CGSize?) -> Self {
         var newSelf = self
-        newSelf.textContainerInset = inset
+        newSelf.configuration.textContainerInset = inset
         return newSelf
     }
 
 #elseif canImport(UIKit)
     func foregroundColor(_ color: UIColor) -> Self {
         var newSelf = self
-        newSelf.foregroundColor = color
+        newSelf.configuration.foregroundColor = color
         return newSelf
     }
     
     func font(_ font: UIFont) -> Self {
         var newSelf = self
-        newSelf.font = font
+        newSelf.configuration.font = font
         return newSelf
     }
     
     func autocapitalizationType(_ autocapitalizationType: UITextAutocapitalizationType) -> Self {
         var newSelf = self
-        newSelf.autocapitalizationType = autocapitalizationType
+        newSelf.configuration.autocapitalizationType = autocapitalizationType
         return newSelf
     }
     
     func textContainerInset(_ inset: UIEdgeInsets?) -> Self {
         var newSelf = self
-        newSelf.textContainerInset = inset
+        newSelf.configuration.textContainerInset = inset
         return newSelf
     }
     
     func keyboardType(_ keyboardType: UIKeyboardType) -> Self {
         var newSelf = self
-        newSelf.keyboardType = keyboardType
+        newSelf.configuration.keyboardType = keyboardType
         return newSelf
     }
 #endif
