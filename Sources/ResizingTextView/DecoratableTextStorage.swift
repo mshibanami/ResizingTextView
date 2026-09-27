@@ -13,24 +13,26 @@ final class DecoratableTextStorage: NSTextStorage {
         var defaultForegroundColor: UXColor?
         var decorations: [TextDecoration] = []
     }
-    
-    var attributionMap = AttributionMap() {
-        didSet {
-            let appliedAttributesAreStale = attributionMap != appliedAttributionMap
-                || (hasCharacterEditsSinceFullApplication && !attributionMap.decorations.isEmpty)
-            guard appliedAttributesAreStale else {
-                return
-            }
-            needsFullReapplication = true
-            let fullRange = string.utf16FullRange
-            if fullRange.length > 0 {
-                beginEditing()
-                edited(.editedAttributes, range: fullRange, changeInLength: 0)
-                endEditing()
-            }
+
+    private struct ResolvedDecoration {
+        var range: NSRange
+        var attributes: [NSAttributedString.Key: Any]
+
+        func isSame(as other: ResolvedDecoration) -> Bool {
+            range == other.range
+                && NSDictionary(dictionary: attributes).isEqual(to: other.attributes)
         }
     }
-    
+
+    var attributionMap = AttributionMap() {
+        didSet {
+            guard attributionMap != oldValue || hasCharacterEditsSinceResolution else {
+                return
+            }
+            apply(attributionMap, replacing: oldValue)
+        }
+    }
+
 #if canImport(AppKit)
     /// NSTextView lets users change attributes of rich text (e.g. from the Font menu),
     /// but the attributes must always be derived from `attributionMap`.
@@ -40,9 +42,12 @@ final class DecoratableTextStorage: NSTextStorage {
 #endif
 
     private let backing = NSMutableAttributedString()
-    private var appliedAttributionMap = AttributionMap()
-    private var needsFullReapplication = false
-    private var hasCharacterEditsSinceFullApplication = false
+    /// The decorations whose attributes are in `backing`, in the coordinates of the current string.
+    /// Attributes outside an edited range move with the text and the edited range is normalized,
+    /// so `backing` always equals the default attributes plus these decorations.
+    private var appliedDecorations: [ResolvedDecoration] = []
+    private var hasCharacterEditsSinceResolution = false
+    private var isApplyingAttributionMap = false
 
     override var string: String {
         backing.string
@@ -53,31 +58,22 @@ final class DecoratableTextStorage: NSTextStorage {
     }
 
     override func processEditing() {
-        let editedRange = self.editedRange
-        
-        if needsFullReapplication {
-            applyDecorationsDirectly(over: string.utf16FullRange)
-            needsFullReapplication = false
-            appliedAttributionMap = attributionMap
-            hasCharacterEditsSinceFullApplication = false
-        } else if editedMask.contains(.editedCharacters) {
-            hasCharacterEditsSinceFullApplication = true
-            if editedRange.length > 0 {
-                applyDecorationsDirectly(over: editedRange)
-            }
-        } else if Self.normalizesAttributeOnlyEdits,
-                  editedMask.contains(.editedAttributes),
-                  editedRange.length > 0 {
-            applyDecorationsDirectly(over: editedRange)
+        let needsNormalization = isApplyingAttributionMap
+            || editedMask.contains(.editedCharacters)
+            || (Self.normalizesAttributeOnlyEdits && editedMask.contains(.editedAttributes))
+        if needsNormalization, editedRange.length > 0 {
+            normalizeAttributes(in: editedRange)
         }
-
         super.processEditing()
     }
-    
+
     override func replaceCharacters(in range: NSRange, with str: String) {
+        let replacementLength = (str as NSString).length
         beginEditing()
         backing.replaceCharacters(in: range, with: str)
-        let delta = (str as NSString).length - range.length
+        let delta = replacementLength - range.length
+        shiftDecorations(forReplacingCharactersIn: range, replacementLength: replacementLength)
+        hasCharacterEditsSinceResolution = true
         edited([.editedCharacters, .editedAttributes], range: range, changeInLength: delta)
         endEditing()
     }
@@ -89,30 +85,75 @@ final class DecoratableTextStorage: NSTextStorage {
         endEditing()
     }
 
-    private func applyDecorationsDirectly(over range: NSRange) {
-        backing.setAttributes([:], range: range)
-        if let font = attributionMap.defaultFont {
-            backing.addAttribute(.font, value: font, range: range)
-        }
-        if let color = attributionMap.defaultForegroundColor {
-            backing.addAttribute(.foregroundColor, value: color, range: range)
-        }
+    private func apply(_ map: AttributionMap, replacing oldMap: AttributionMap) {
         let string = string
-        for decoration in attributionMap.decorations {
-            guard decoration.range.isValid(in: string) else { continue }
-            
-            let decoRange = NSRange(decoration.range, in: string)
-            let overlap = NSIntersectionRange(decoRange, range)
-            guard overlap.length > 0 else {
-                continue
+        let resolved = map.decorations.compactMap { decoration -> ResolvedDecoration? in
+            guard decoration.range.isValid(in: string) else {
+                return nil
             }
-            backing.addAttributes(decoration.attributes, range: overlap)
+            return ResolvedDecoration(range: NSRange(decoration.range, in: string), attributes: decoration.attributes)
+        }
+
+        var dirtyIndexes = IndexSet()
+        if map.defaultFont != oldMap.defaultFont || map.defaultForegroundColor != oldMap.defaultForegroundColor {
+            dirtyIndexes.insert(integersIn: 0..<backing.length)
+        } else {
+            for index in 0..<max(resolved.count, appliedDecorations.count) {
+                let new = resolved.indices.contains(index) ? resolved[index] : nil
+                let old = appliedDecorations.indices.contains(index) ? appliedDecorations[index] : nil
+                if let new, let old, new.isSame(as: old) {
+                    continue
+                }
+                for range in [new?.range, old?.range].compactMap({ $0 }) {
+                    dirtyIndexes.insert(integersIn: Range(range)!)
+                }
+            }
+        }
+
+        appliedDecorations = resolved
+        hasCharacterEditsSinceResolution = false
+        dirtyIndexes.remove(integersIn: backing.length..<Int.max)
+        guard !dirtyIndexes.isEmpty else {
+            return
+        }
+
+        isApplyingAttributionMap = true
+        beginEditing()
+        for range in dirtyIndexes.rangeView {
+            edited(.editedAttributes, range: NSRange(range), changeInLength: 0)
+        }
+        endEditing()
+        isApplyingAttributionMap = false
+    }
+
+    private func shiftDecorations(forReplacingCharactersIn range: NSRange, replacementLength: Int) {
+        let delta = replacementLength - range.length
+        let replacedEnd = range.upperBound
+        func newStart(_ location: Int) -> Int {
+            location < range.location ? location : location >= replacedEnd ? location + delta : range.location
+        }
+        func newEnd(_ location: Int) -> Int {
+            location <= range.location ? location : location >= replacedEnd ? location + delta : range.location + replacementLength
+        }
+
+        for index in appliedDecorations.indices {
+            let old = appliedDecorations[index].range
+            let start = newStart(old.location)
+            let end = max(start, newEnd(old.upperBound))
+            appliedDecorations[index].range = NSRange(location: start, length: end - start)
         }
     }
-}
 
-extension String {
-    var utf16FullRange: NSRange {
-        NSRange(location: 0, length: utf16.count)
+    private func normalizeAttributes(in range: NSRange) {
+        var attributes: [NSAttributedString.Key: Any] = [:]
+        attributes[.font] = attributionMap.defaultFont
+        attributes[.foregroundColor] = attributionMap.defaultForegroundColor
+        backing.setAttributes(attributes, range: range)
+        for decoration in appliedDecorations {
+            let overlap = NSIntersectionRange(decoration.range, range)
+            if overlap.length > 0 {
+                backing.addAttributes(decoration.attributes, range: overlap)
+            }
+        }
     }
 }
