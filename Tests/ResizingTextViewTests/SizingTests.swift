@@ -35,7 +35,7 @@ final class SizingTests: XCTestCase {
         Case(text: String(repeating: "wrap me ", count: 12)), Case(text: String(repeating: "日本語の文章", count: 8)),
         Case(text: "😀😀😀\n👍"), Case(text: "Hello world", decorated: true),
         Case(text: String(repeating: "wrap me ", count: 12), lineLimit: 2),
-        Case(text: String(repeating: "wrap me gjpqy ", count: 12), lineLimit: 2),
+        Case(text: String(repeating: "wrap me gjpqy ", count: 12), lineLimit: 2), Case(text: "a\nb\nc", lineLimit: 2),
         Case(text: "hello", hasGreedyWidth: false), Case(text: "hello\nworld", hasGreedyWidth: false),
         Case(text: String(repeating: "wrap me ", count: 12), hasGreedyWidth: false), Case(text: "", hasGreedyWidth: false),
     ]

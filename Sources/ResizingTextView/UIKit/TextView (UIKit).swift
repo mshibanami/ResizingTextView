@@ -103,6 +103,11 @@ import UIKit
             textView.isEditable = isEditable
         }
 #endif
+        // UITextView enables non-contiguous layout when it is not editable, and then lays out no
+        // lines at all if the text has newlines and `maximumNumberOfLines` is set.
+        if textView.layoutManager.allowsNonContiguousLayout {
+            textView.layoutManager.allowsNonContiguousLayout = false
+        }
         if textView.isSelectable != isSelectable {
             textView.isSelectable = isSelectable
         }
