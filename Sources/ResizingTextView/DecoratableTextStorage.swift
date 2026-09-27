@@ -6,7 +6,6 @@ import AppKit
 import UIKit
 #endif
 
-@MainActor
 final class DecoratableTextStorage: NSTextStorage {
     struct AttributionMap: Equatable {
         var defaultFont: UXFont?

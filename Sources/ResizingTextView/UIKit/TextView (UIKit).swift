@@ -71,7 +71,7 @@ import UIKit
         resetTypingAttributes(of: textView)
         updateUIView(textView, context: context)
         if isScrollable {
-            Task.detached { @MainActor [weak textView] in
+            DispatchQueue.main.async { [weak textView] in
                 textView?.setContentOffset(.zero, animated: false)
             }
         }
@@ -150,7 +150,7 @@ import UIKit
         ]
     }
 
-    final class Coordinator: NSObject, UITextViewDelegate {
+    @MainActor final class Coordinator: NSObject, UITextViewDelegate {
         var swiftUIView: TextView
 
         init(_ parent: TextView) {
@@ -208,7 +208,7 @@ class CustomTextView: UITextView {
         didSet {
             if hasDynamicHeight,
                contentSize != oldValue {
-                Task.detached { @MainActor [weak self] in
+                DispatchQueue.main.async { [weak self] in
                     self?.invalidateIntrinsicContentSize()
                 }
             }

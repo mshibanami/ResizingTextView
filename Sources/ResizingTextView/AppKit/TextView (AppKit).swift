@@ -86,7 +86,7 @@ import SwiftUI
                 }
             } else {
                 // Don't keep the selection
-                Task { @MainActor [weak textView] in
+                DispatchQueue.main.async { [weak textView] in
                     guard let textView,
                           textView.window?.firstResponder !== textView else {
                         return
@@ -191,29 +191,23 @@ import SwiftUI
     @MainActor final class Coordinator: NSObject, NSTextViewDelegate {
         fileprivate var swiftUIView: TextView
         fileprivate weak var nsView: CustomTextView?
-        private var undoObservers: [NSObjectProtocol] = []
 
         init(swiftUIView: TextView) {
             self.swiftUIView = swiftUIView
             super.init()
             // `textDidChange(_:)` is not guaranteed to be called when undo/redo changes
             // a text view that is not the first responder.
-            undoObservers = [NSNotification.Name.NSUndoManagerDidUndoChange, .NSUndoManagerDidRedoChange].map {
-                NotificationCenter.default.addObserver(forName: $0, object: nil, queue: .main) { [weak self] notification in
-                    MainActor.assumeIsolated {
-                        guard let self,
-                              let undoManager = notification.object as? UndoManager,
-                              self.nsView?.undoManager === undoManager else {
-                            return
-                        }
-                        self.updateTextView()
-                    }
-                }
+            for name in [NSNotification.Name.NSUndoManagerDidUndoChange, .NSUndoManagerDidRedoChange] {
+                NotificationCenter.default.addObserver(self, selector: #selector(undoManagerDidUndoOrRedo), name: name, object: nil)
             }
         }
 
-        deinit {
-            undoObservers.forEach(NotificationCenter.default.removeObserver)
+        @objc private func undoManagerDidUndoOrRedo(_ notification: Notification) {
+            guard let undoManager = notification.object as? UndoManager,
+                  nsView?.undoManager === undoManager else {
+                return
+            }
+            updateTextView()
         }
 
         func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {

@@ -17,8 +17,8 @@ private struct ThirdCharacterHost: View {
     }
 }
 
-private let regularFont = UXFont.systemFont(ofSize: 12)
-private let boldFont = UXFont.boldSystemFont(ofSize: 20)
+@MainActor private let regularFont = UXFont.systemFont(ofSize: 12)
+@MainActor private let boldFont = UXFont.boldSystemFont(ofSize: 20)
 
 @MainActor
 final class DecoratableTextStorageTests: XCTestCase {
