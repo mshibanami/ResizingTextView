@@ -41,7 +41,7 @@ final class TextMeasurer {
                   numberOfLines() >= container.maximumNumberOfLines {
             size.height -= extraLineHeight
         }
-        return CGSize(width: ceil(size.width), height: ceil(size.height))
+        return size
     }
 
     private var lineHeights: [UXFont: CGFloat] = [:]

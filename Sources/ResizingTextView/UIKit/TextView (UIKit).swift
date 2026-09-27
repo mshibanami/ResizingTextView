@@ -152,8 +152,8 @@ import UIKit
             like: uiView.textContainer,
             emptyLineFont: font
         )
-        let textWidth = textSize.width + inset.left + inset.right
-        let textHeight = textSize.height + inset.top + inset.bottom
+        let textWidth = ceil(textSize.width + inset.left + inset.right)
+        let textHeight = ceil(textSize.height + inset.top + inset.bottom)
         let width: CGFloat
         let fillsHeight: Bool
         if hasGreedyWidth {

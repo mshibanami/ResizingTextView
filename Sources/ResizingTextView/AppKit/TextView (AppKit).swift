@@ -188,9 +188,9 @@ import SwiftUI
             emptyLineFont: font
         )
         let spaceForNewLine: CGFloat = isEditable && canHaveNewLineCharacters ? 20 : 0
-        let textHeight = textSize.height + inset.height * 2 + spaceForNewLine
+        let textHeight = ceil(textSize.height) + inset.height * 2 + spaceForNewLine
         return CGSize(
-            width: fittingWidth(textWidth: textSize.width + inset.width * 2, proposal: proposal),
+            width: fittingWidth(textWidth: ceil(textSize.width) + inset.width * 2, proposal: proposal),
             height: isEditable && isScrollable ? proposal.height ?? textHeight : textHeight
         )
     }
