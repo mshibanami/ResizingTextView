@@ -79,6 +79,8 @@ import UIKit
     }
 
     func updateUIView(_ textView: CustomTextView, context: Context) {
+        context.coordinator.swiftUIView = self
+
         var needsInvalidateIntrinsicContentSize = false
 
         textView.hasDynamicHeight = !isScrollable

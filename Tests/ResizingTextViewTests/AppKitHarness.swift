@@ -18,7 +18,6 @@ func findTextView(in view: NSView) -> NSTextView? {
     return nil
 }
 
-/// Hosts a SwiftUI view in a real window and returns the backing NSTextView.
 @MainActor
 final class Hosted<V: View> {
     let window: NSWindow
@@ -36,6 +35,7 @@ final class Hosted<V: View> {
         spin()
     }
     var textView: NSTextView { findTextView(in: hosting)! }
+    var text: String { textView.string }
     func focus() {
         XCTAssertTrue(window.makeFirstResponder(textView))
         spin()
@@ -44,8 +44,6 @@ final class Hosted<V: View> {
         window.makeFirstResponder(nil)
         spin()
     }
-    /// Simulates the user typing/pasting through the regular NSTextView input path
-    /// (shouldChangeText -> storage edit -> didChangeText -> textDidChange).
     func type(_ s: String) {
         textView.insertText(s, replacementRange: NSRange(location: NSNotFound, length: 0))
         spin()

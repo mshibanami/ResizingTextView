@@ -75,9 +75,12 @@ import SwiftUI
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
         resetTypingAttributes(of: textView)
-        textView.onFocusChanged = { [weak textView] isFocused in
+        textView.onFocusChanged = { [weak textView, weak coordinator = context.coordinator] isFocused in
+            guard let parent = coordinator?.swiftUIView else {
+                return
+            }
             if isFocused {
-                if text.isEmpty {
+                if parent.text.isEmpty {
                     // HACK: A workaround for the bug that the cursor is
                     // not shown when focusing an empty TextView.
                     textView?.setSelectedRange(.init())
@@ -88,7 +91,7 @@ import SwiftUI
                     await textView?.setSelectedRange(.init())
                 }
             }
-            onFocusChanged?(isFocused)
+            parent.onFocusChanged?(isFocused)
         }
 
         let scrollView = TextEnclosingScrollView()
@@ -102,6 +105,8 @@ import SwiftUI
     }
 
     func updateNSView(_ view: TextEnclosingScrollView, context: Context) {
+        context.coordinator.swiftUIView = self
+
         guard let textView = view.documentView as? CustomTextView else {
             assertionFailure()
             return
