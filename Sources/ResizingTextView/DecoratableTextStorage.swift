@@ -31,6 +31,14 @@ final class DecoratableTextStorage: NSTextStorage {
         }
     }
     
+#if canImport(AppKit)
+    /// NSTextView lets users change attributes of rich text (e.g. from the Font menu),
+    /// but the attributes must always be derived from `attributionMap`.
+    private static let normalizesAttributeOnlyEdits = true
+#else
+    private static let normalizesAttributeOnlyEdits = false
+#endif
+
     private let backing = NSMutableAttributedString()
     private var appliedAttributionMap = AttributionMap()
     private var needsFullReapplication = false
@@ -57,6 +65,10 @@ final class DecoratableTextStorage: NSTextStorage {
             if editedRange.length > 0 {
                 applyDecorationsDirectly(over: editedRange)
             }
+        } else if Self.normalizesAttributeOnlyEdits,
+                  editedMask.contains(.editedAttributes),
+                  editedRange.length > 0 {
+            applyDecorationsDirectly(over: editedRange)
         }
 
         super.processEditing()
