@@ -136,7 +136,12 @@ import SwiftUI
         }
         
         if textView.string != text {
+            let selectedRanges = textView.selectedRanges
             textView.replaceStringDiscardingUndo(text)
+            let length = (text as NSString).length
+            textView.selectedRanges = selectedRanges.map {
+                NSValue(range: $0.rangeValue.clamped(toLength: length))
+            }
         }
         
         if let textStorage = textView.textStorage as? DecoratableTextStorage {
@@ -167,11 +172,6 @@ import SwiftUI
                 textView.textContainer?.lineBreakMode = .byTruncatingTail
             }
         }
-        
-        if !context.coordinator.selectedRanges.isEmpty,
-           textView.selectedRanges != context.coordinator.selectedRanges {
-            textView.selectedRanges = context.coordinator.selectedRanges
-        }
     }
     
     func makeCoordinator() -> Coordinator {
@@ -188,7 +188,6 @@ import SwiftUI
     final class Coordinator: NSObject, NSTextViewDelegate, NSTextStorageDelegate {
         fileprivate var swiftUIView: TextView
         fileprivate weak var nsView: CustomTextView?
-        fileprivate var selectedRanges = [NSValue]()
 
         init(swiftUIView: TextView) {
             self.swiftUIView = swiftUIView
@@ -265,10 +264,6 @@ import SwiftUI
             let newString = nsView.string
             if swiftUIView.text != newString {
                 swiftUIView.text = newString
-            }
-            let newRanges = nsView.selectedRanges
-            if selectedRanges != newRanges {
-                selectedRanges = newRanges
             }
         }
     }

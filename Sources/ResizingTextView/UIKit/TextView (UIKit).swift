@@ -87,7 +87,9 @@ import UIKit
         textView.clipsToBounds = isScrollable
         
         if textView.text != text {
+            let selectedRange = textView.selectedRange
             textView.text = text
+            textView.selectedRange = selectedRange.clamped(toLength: (text as NSString).length)
         }
         
         if let textStorage = textView.textStorage as? DecoratableTextStorage {
@@ -124,11 +126,6 @@ import UIKit
                 textView.textContainer.lineBreakMode = .byTruncatingTail
             }
         }
-        if let selectedRange = context.coordinator.selectedRange {
-            if textView.selectedRange != selectedRange {
-                textView.selectedRange = selectedRange
-            }
-        }
 
 #if !os(tvOS)
         if !isEditable {
@@ -155,7 +152,6 @@ import UIKit
 
     final class Coordinator: NSObject, UITextViewDelegate {
         var swiftUIView: TextView
-        var selectedRange: NSRange?
 
         init(_ parent: TextView) {
             self.swiftUIView = parent
@@ -183,9 +179,6 @@ import UIKit
             }
             if textView.text != swiftUIView.text {
                 swiftUIView.text = textView.text
-            }
-            if selectedRange != textView.selectedRange {
-                selectedRange = textView.selectedRange
             }
             textView.invalidateIntrinsicContentSize()
         }
