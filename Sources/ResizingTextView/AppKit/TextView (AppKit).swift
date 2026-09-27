@@ -87,8 +87,12 @@ import SwiftUI
                 }
             } else {
                 // Don't keep the selection
-                Task.detached { [weak textView] in
-                    await textView?.setSelectedRange(.init())
+                Task { @MainActor [weak textView] in
+                    guard let textView,
+                          textView.window?.firstResponder !== textView else {
+                        return
+                    }
+                    textView.setSelectedRange(.init())
                 }
             }
             parent.onFocusChanged?(isFocused)
