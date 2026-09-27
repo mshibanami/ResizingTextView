@@ -22,6 +22,7 @@ import UIKit
         var autocapitalizationType: UITextAutocapitalizationType
         var textContainerInset: UIEdgeInsets
         var keyboardType: UIKeyboardType
+        var hasGreedyWidth: Bool
     }
     
     @Binding private var text: String
@@ -38,6 +39,7 @@ import UIKit
     private var autocapitalizationType: UITextAutocapitalizationType
     private var textContainerInset: UIEdgeInsets
     private var keyboardType: UIKeyboardType
+    private var hasGreedyWidth: Bool
     
     init(parameters: Parameters) {
         _text = parameters.text
@@ -54,6 +56,7 @@ import UIKit
         self.autocapitalizationType = parameters.autocapitalizationType
         self.textContainerInset = parameters.textContainerInset
         self.keyboardType = parameters.keyboardType
+        self.hasGreedyWidth = parameters.hasGreedyWidth
     }
     
     func makeUIView(context: Context) -> CustomTextView {
@@ -135,6 +138,33 @@ import UIKit
         }
     }
 
+    @available(iOS 16.0, tvOS 16.0, *)
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: CustomTextView, context: Context) -> CGSize? {
+        let inset = uiView.textContainerInset
+        let textSize = context.coordinator.measurer.size(
+            of: uiView.textStorage,
+            width: proposal.width.map { max(0, $0 - inset.left - inset.right) },
+            like: uiView.textContainer,
+            emptyLineFont: font
+        )
+        let textWidth = textSize.width + inset.left + inset.right
+        let textHeight = textSize.height + inset.top + inset.bottom
+        let width: CGFloat
+        let fillsHeight: Bool
+        if hasGreedyWidth {
+            width = proposal.width ?? textWidth
+            fillsHeight = isScrollable
+        } else {
+            width = proposal.width.map { min(textWidth, $0) } ?? textWidth
+#if os(tvOS)
+            fillsHeight = isScrollable
+#else
+            fillsHeight = isEditable && isScrollable
+#endif
+        }
+        return CGSize(width: width, height: fillsHeight ? proposal.height ?? textHeight : textHeight)
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -149,6 +179,7 @@ import UIKit
 
     @MainActor final class Coordinator: NSObject, UITextViewDelegate {
         var swiftUIView: TextView
+        let measurer = TextMeasurer()
 
         init(_ parent: TextView) {
             self.swiftUIView = parent

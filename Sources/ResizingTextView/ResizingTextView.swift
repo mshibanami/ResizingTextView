@@ -121,10 +121,16 @@ import SwiftUI
     
     public var body: some View {
 #if canImport(AppKit)
-        invisibleSizingText
-            .overlay(visibleTextViewWrapper)
+        if #available(macOS 13.0, *) {
+            visibleTextViewWrapper
+        } else {
+            invisibleSizingText
+                .overlay(visibleTextViewWrapper)
+        }
 #elseif canImport(UIKit)
         if configuration.hasGreedyWidth {
+            visibleTextViewWrapper
+        } else if #available(iOS 16.0, tvOS 16.0, *) {
             visibleTextViewWrapper
         } else {
             invisibleSizingText
@@ -133,6 +139,7 @@ import SwiftUI
 #endif
     }
 
+    /// Sizes the view before `sizeThatFits(_:nsView:context:)`/`sizeThatFits(_:uiView:context:)` is available.
     @ViewBuilder var invisibleSizingText: some View {
 #if canImport(AppKit)
         // https://developer.apple.com/documentation/uikit/nstextcontainer/1444527-linefragmentpadding
@@ -195,7 +202,8 @@ import SwiftUI
                 }
             },
             onInsertNewline: onInsertNewline,
-            textContainerInset: effectiveTextContainerInset
+            textContainerInset: effectiveTextContainerInset,
+            hasGreedyWidth: configuration.hasGreedyWidth
         )
         .background(configuration.isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
         .roundedFilledBorder(
@@ -237,7 +245,8 @@ import SwiftUI
                 foregroundColor: Color(configuration.foregroundColor),
                 autocapitalizationType: configuration.autocapitalizationType,
                 textContainerInset: effectiveTextContainerInset,
-                keyboardType: configuration.keyboardType
+                keyboardType: configuration.keyboardType,
+                hasGreedyWidth: configuration.hasGreedyWidth
             )
 #else
             let parameters = TextView.Parameters(
@@ -252,7 +261,8 @@ import SwiftUI
                 foregroundColor: Color(configuration.foregroundColor),
                 autocapitalizationType: configuration.autocapitalizationType,
                 textContainerInset: effectiveTextContainerInset,
-                keyboardType: configuration.keyboardType
+                keyboardType: configuration.keyboardType,
+                hasGreedyWidth: configuration.hasGreedyWidth
             )
 #endif
             TextView(parameters: parameters)

@@ -20,6 +20,7 @@ import SwiftUI
     var onFocusChanged: ((Bool) -> Void)?
     var onInsertNewline: (() -> Bool)?
     var textContainerInset: CGSize
+    var hasGreedyWidth: Bool
 
     init(
         _ text: Binding<String>,
@@ -35,7 +36,8 @@ import SwiftUI
         foregroundColor: Color?,
         onFocusChanged: ((Bool) -> Void)?,
         onInsertNewline: (() -> Bool)?,
-        textContainerInset: CGSize
+        textContainerInset: CGSize,
+        hasGreedyWidth: Bool
     ) {
         self._text = text
         self.decorations = decorations
@@ -51,6 +53,7 @@ import SwiftUI
         self.onFocusChanged = onFocusChanged
         self.onInsertNewline = onInsertNewline
         self.textContainerInset = textContainerInset
+        self.hasGreedyWidth = hasGreedyWidth
     }
 
     func makeNSView(context: Context) -> TextEnclosingScrollView {
@@ -170,6 +173,36 @@ import SwiftUI
         }
     }
     
+    @available(macOS 13.0, *)
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: TextEnclosingScrollView, context: Context) -> CGSize? {
+        guard let textView = nsView.documentView as? NSTextView,
+              let textContainer = textView.textContainer,
+              let textStorage = textView.textStorage else {
+            return nil
+        }
+        let inset = textView.textContainerInset
+        let textSize = context.coordinator.measurer.size(
+            of: textStorage,
+            width: proposal.width.map { max(0, $0 - inset.width * 2) },
+            like: textContainer,
+            emptyLineFont: font
+        )
+        let spaceForNewLine: CGFloat = isEditable && canHaveNewLineCharacters ? 20 : 0
+        let textHeight = textSize.height + inset.height * 2 + spaceForNewLine
+        return CGSize(
+            width: fittingWidth(textWidth: textSize.width + inset.width * 2, proposal: proposal),
+            height: isEditable && isScrollable ? proposal.height ?? textHeight : textHeight
+        )
+    }
+
+    @available(macOS 13.0, *)
+    private func fittingWidth(textWidth: CGFloat, proposal: ProposedViewSize) -> CGFloat {
+        guard let proposedWidth = proposal.width else {
+            return textWidth
+        }
+        return hasGreedyWidth ? proposedWidth : min(textWidth, proposedWidth)
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(swiftUIView: self)
     }
@@ -185,6 +218,7 @@ import SwiftUI
     @MainActor final class Coordinator: NSObject, NSTextViewDelegate {
         fileprivate var swiftUIView: TextView
         fileprivate weak var nsView: CustomTextView?
+        fileprivate let measurer = TextMeasurer()
 
         init(swiftUIView: TextView) {
             self.swiftUIView = swiftUIView
