@@ -16,14 +16,17 @@ final class DecoratableTextStorage: NSTextStorage {
     
     var attributionMap = AttributionMap() {
         didSet {
-            if attributionMap != oldValue {
-                needsFullReapplication = true
-                let fullRange = string.utf16FullRange
-                if fullRange.length > 0 {
-                    beginEditing()
-                    edited(.editedAttributes, range: fullRange, changeInLength: 0)
-                    endEditing()
-                }
+            let appliedAttributesAreStale = attributionMap != appliedAttributionMap
+                || (hasCharacterEditsSinceFullApplication && !attributionMap.decorations.isEmpty)
+            guard appliedAttributesAreStale else {
+                return
+            }
+            needsFullReapplication = true
+            let fullRange = string.utf16FullRange
+            if fullRange.length > 0 {
+                beginEditing()
+                edited(.editedAttributes, range: fullRange, changeInLength: 0)
+                endEditing()
             }
         }
     }
@@ -31,6 +34,7 @@ final class DecoratableTextStorage: NSTextStorage {
     private let backing = NSMutableAttributedString()
     private var appliedAttributionMap = AttributionMap()
     private var needsFullReapplication = false
+    private var hasCharacterEditsSinceFullApplication = false
 
     override var string: String {
         backing.string
@@ -47,9 +51,12 @@ final class DecoratableTextStorage: NSTextStorage {
             applyDecorationsDirectly(over: string.utf16FullRange)
             needsFullReapplication = false
             appliedAttributionMap = attributionMap
-        } else if editedMask.contains(.editedCharacters),
-                  editedRange.length > 0 {
-            applyDecorationsDirectly(over: editedRange)
+            hasCharacterEditsSinceFullApplication = false
+        } else if editedMask.contains(.editedCharacters) {
+            hasCharacterEditsSinceFullApplication = true
+            if editedRange.length > 0 {
+                applyDecorationsDirectly(over: editedRange)
+            }
         }
 
         super.processEditing()
