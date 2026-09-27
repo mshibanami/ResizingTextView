@@ -136,7 +136,7 @@ import SwiftUI
         }
         
         if textView.string != text {
-            textView.string = text
+            textView.replaceStringDiscardingUndo(text)
         }
         
         if let textStorage = textView.textStorage as? DecoratableTextStorage {
@@ -216,7 +216,13 @@ import SwiftUI
         }
         
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            if replacementString == "\n", !swiftUIView.canHaveNewLineCharacters {
+            if let replacementString,
+               !swiftUIView.canHaveNewLineCharacters,
+               replacementString.containsNewlines {
+                let sanitized = replacementString.removingNewlines
+                if !sanitized.isEmpty {
+                    textView.insertText(sanitized, replacementRange: affectedCharRange)
+                }
                 return false
             }
             if let _ = replacementString, replacementString != "" {
@@ -253,8 +259,8 @@ import SwiftUI
                 return
             }
             if !swiftUIView.canHaveNewLineCharacters,
-               nsView.string.contains("\n") {
-                nsView.string.removeAll(where: { $0 == "\n" })
+               nsView.string.containsNewlines {
+                nsView.replaceStringDiscardingUndo(nsView.string.removingNewlines)
             }
             let newString = nsView.string
             if swiftUIView.text != newString {
@@ -310,6 +316,15 @@ private class CustomTextView: NSTextView {
             onFocusChanged?(false)
         }
         return result
+    }
+}
+
+private extension NSTextView {
+    func replaceStringDiscardingUndo(_ newString: String) {
+        string = newString
+        if let textStorage {
+            undoManager?.removeAllActions(withTarget: textStorage)
+        }
     }
 }
 

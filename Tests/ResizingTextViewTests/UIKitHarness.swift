@@ -30,7 +30,10 @@ final class Hosted<V: View> {
         spin()
     }
     func type(_ s: String) {
-        textView.insertText(s)
+        let range = textView.selectedRange
+        if textView.delegate?.textView?(textView, shouldChangeTextIn: range, replacementText: s) ?? true {
+            textView.insertText(s)
+        }
         spin()
     }
 }

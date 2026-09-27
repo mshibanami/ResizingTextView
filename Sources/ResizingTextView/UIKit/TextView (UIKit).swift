@@ -162,8 +162,14 @@ import UIKit
         }
                 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            if text == "\n",
-               !swiftUIView.canHaveNewLineCharacters {
+            if !swiftUIView.canHaveNewLineCharacters,
+               text.containsNewlines {
+                let sanitized = text.removingNewlines
+                if !sanitized.isEmpty {
+                    swiftUIView.resetTypingAttributes(of: textView)
+                    textView.selectedRange = range
+                    textView.insertText(sanitized)
+                }
                 return false
             }
             swiftUIView.resetTypingAttributes(of: textView)
@@ -172,8 +178,8 @@ import UIKit
 
         func textViewDidChange(_ textView: UITextView) {
             if !swiftUIView.canHaveNewLineCharacters,
-               textView.text.contains(where: { $0 == "\n" }) {
-                textView.text.removeAll(where: { $0 == "\n" })
+               textView.text.containsNewlines {
+                textView.text = textView.text.removingNewlines
             }
             if textView.text != swiftUIView.text {
                 swiftUIView.text = textView.text
