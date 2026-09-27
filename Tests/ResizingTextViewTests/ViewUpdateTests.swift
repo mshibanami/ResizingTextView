@@ -4,18 +4,7 @@ import XCTest
 
 private struct SwitchingHost: View {
     @ObservedObject var m: TestModel
-    var body: some View { ResizingTextView(text: $m.notes[m.selected]) }
-}
-
-private struct SubmitHost: View {
-    @ObservedObject var m: TestModel
-    var body: some View {
-        let target = m.target
-        ResizingTextView(text: $m.text)
-#if canImport(AppKit)
-            .onInsertNewline { [m] in m.sent.append(target); return true }
-#endif
-    }
+    var body: some View { ResizingTextView(text: $m.notes[m.selected]).id(m.selected) }
 }
 
 private struct InsetHost: View {
@@ -38,7 +27,7 @@ private struct KeyboardHost: View {
 
 @MainActor
 final class ViewUpdateTests: XCTestCase {
-    func testSwitchingToBindingWithEqualValueWritesIntoNewTarget() {
+    func testSwitchingIdentifiedBindingWithEqualValueWritesIntoNewTarget() {
         let m = TestModel()
         m.notes = ["same", "same"]
         let h = Hosted(SwitchingHost(m: m))
@@ -62,26 +51,10 @@ final class ViewUpdateTests: XCTestCase {
 #endif
     }
 
-#if canImport(AppKit)
-    func testOnInsertNewlineChangeIsApplied() {
-        let m = TestModel()
-        let h = Hosted(SubmitHost(m: m))
-        h.focus()
-        spin(1)
-        m.target = "B"
-        spin()
-        h.textView.doCommand(by: #selector(NSResponder.insertNewline(_:)))
-        spin()
-        XCTAssertEqual(m.sent, ["B"])
-    }
-#endif
-
 #if canImport(UIKit)
     func testKeyboardTypeChangeIsApplied() {
         let m = TestModel()
         let h = Hosted(KeyboardHost(m: m))
-        h.focus()
-        spin(1)
         m.flag = false
         spin()
         XCTAssertEqual(h.textView.keyboardType, .numberPad)

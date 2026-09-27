@@ -4,7 +4,11 @@ import Combine
 import Foundation
 import SwiftUI
 
-@MainActor public struct ResizingTextView: View {
+/// `ResizingTextView` is `Equatable` so that SwiftUI can skip redundant updates. Since a binding is
+/// compared by its value, give the view a different identity (e.g. `.id(item.id)`) when the binding
+/// starts pointing to other storage. Closures such as `onInsertNewline` are not compared either, so a new
+/// closure takes effect only when another property changes as well.
+@MainActor public struct ResizingTextView: View, @MainActor Equatable {
 #if canImport(AppKit)
     @Environment(\.controlActiveState) private var controlActiveState
 #endif
@@ -267,6 +271,31 @@ import SwiftUI
             base.addAttributes(decoration.attributes, range: nsRange)
         }
         return AttributedString(base)
+    }
+    
+    public static func == (lhs: ResizingTextView, rhs: ResizingTextView) -> Bool {
+        var result = lhs.text == rhs.text
+            && lhs.decorations == rhs.decorations
+            && lhs.placeholder == rhs.placeholder
+            && lhs.isScrollable == rhs.isScrollable
+            && lhs.isSelectable == rhs.isSelectable
+            && lhs.lineLimit == rhs.lineLimit
+            && lhs.font == rhs.font
+            && lhs.canHaveNewLineCharacters == rhs.canHaveNewLineCharacters
+            && lhs.foregroundColor == rhs.foregroundColor
+            && lhs.hasGreedyWidth == rhs.hasGreedyWidth
+            && lhs.isFocused == rhs.isFocused
+            && lhs.textContainerInset == rhs.textContainerInset
+#if !os(tvOS)
+        result = result && lhs.isEditable == rhs.isEditable
+#endif
+#if canImport(AppKit)
+        result = result && lhs.focusesNextKeyViewByTabKey == rhs.focusesNextKeyViewByTabKey
+#elseif canImport(UIKit)
+        result = result && lhs.autocapitalizationType == rhs.autocapitalizationType
+            && lhs.keyboardType == rhs.keyboardType
+#endif
+        return result
     }
 }
 
