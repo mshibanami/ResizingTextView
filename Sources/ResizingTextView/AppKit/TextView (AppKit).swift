@@ -67,7 +67,6 @@ import SwiftUI
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
         textView.delegate = context.coordinator
-        textView.textStorage?.delegate = context.coordinator
         textView.isRichText = true
         textView.allowsUndo = true
         textView.autoresizingMask = [.width]
@@ -189,12 +188,32 @@ import SwiftUI
         ]
     }
 
-    final class Coordinator: NSObject, NSTextViewDelegate, NSTextStorageDelegate {
+    @MainActor final class Coordinator: NSObject, NSTextViewDelegate {
         fileprivate var swiftUIView: TextView
         fileprivate weak var nsView: CustomTextView?
+        private var undoObservers: [NSObjectProtocol] = []
 
         init(swiftUIView: TextView) {
             self.swiftUIView = swiftUIView
+            super.init()
+            // `textDidChange(_:)` is not guaranteed to be called when undo/redo changes
+            // a text view that is not the first responder.
+            undoObservers = [NSNotification.Name.NSUndoManagerDidUndoChange, .NSUndoManagerDidRedoChange].map {
+                NotificationCenter.default.addObserver(forName: $0, object: nil, queue: .main) { [weak self] notification in
+                    MainActor.assumeIsolated {
+                        guard let self,
+                              let undoManager = notification.object as? UndoManager,
+                              self.nsView?.undoManager === undoManager else {
+                            return
+                        }
+                        self.updateTextView()
+                    }
+                }
+            }
+        }
+
+        deinit {
+            undoObservers.forEach(NotificationCenter.default.removeObserver)
         }
 
         func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
@@ -242,22 +261,7 @@ import SwiftUI
             updateTextView()
         }
         
-        func textStorage(_ textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
-            // The `textDidChange()` delegate method is not called when the view is not focused AND the text is changed by undo/redo.
-            // This code is a fallback for when it happens.
-            Task { [weak self] in
-                guard let self,
-                      let nsView,
-                      let window = await nsView.window,
-                      let firstResponder = await window.firstResponder,
-                      nsView != firstResponder else {
-                    return
-                }
-                await updateTextView()
-            }
-        }
-        
-        @MainActor private func updateTextView() {
+        private func updateTextView() {
             guard let nsView else {
                 return
             }
