@@ -97,6 +97,7 @@ final class DecoratableTextStorage: NSTextStorage {
         if let color = attributionMap.defaultForegroundColor {
             backing.addAttribute(.foregroundColor, value: color, range: range)
         }
+        let string = string
         for decoration in attributionMap.decorations {
             guard decoration.range.isValid(in: string) else { continue }
             
