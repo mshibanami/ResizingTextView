@@ -13,7 +13,7 @@ private struct SizingHost: View {
         VStack(alignment: .leading, spacing: 0) {
             ResizingTextView(text: .constant(text), isEditable: isEditable, lineLimit: lineLimit, hasGreedyWidth: hasGreedyWidth)
                 .decorations(decorated && !text.isEmpty ? [
-                    TextDecoration(range: text.startIndex..<text.index(after: text.startIndex), attributes: [.font: UXFont.boldSystemFont(ofSize: 40)])
+                    TextDecoration(range: NSRange(location: 0, length: 1), attributes: [.font: UXFont.boldSystemFont(ofSize: 40)])
                 ] : [])
             Spacer(minLength: 0)
         }

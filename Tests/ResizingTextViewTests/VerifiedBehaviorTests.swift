@@ -12,11 +12,26 @@ final class VerifiedBehaviorTests: XCTestCase {
         storage.attributionMap = .init(
             defaultFont: .systemFont(ofSize: 12),
             defaultForegroundColor: .black,
-            decorations: [TextDecoration(range: range, attributes: [.kern: 5])]
+            decorations: [TextDecoration(range: range, in: text, attributes: [.kern: 5])]
         )
         let location = NSRange(range, in: text).location
         XCTAssertEqual(storage.attribute(.kern, at: location, effectiveRange: nil) as? Int, 5)
         XCTAssertNil(storage.attribute(.kern, at: location - 1, effectiveRange: nil))
+    }
+
+    func testDecorationExceedingTextIsIgnored() {
+        let storage = DecoratableTextStorage()
+        storage.replaceCharacters(in: NSRange(location: 0, length: 0), with: "abc")
+        storage.attributionMap = .init(
+            defaultFont: .systemFont(ofSize: 12),
+            defaultForegroundColor: .black,
+            decorations: [
+                TextDecoration(range: NSRange(location: 2, length: 2), attributes: [.kern: 5]),
+                TextDecoration(range: NSRange(location: 0, length: 1), attributes: [.kern: 7]),
+            ]
+        )
+        XCTAssertEqual(storage.attribute(.kern, at: 0, effectiveRange: nil) as? Int, 7)
+        XCTAssertNil(storage.attribute(.kern, at: 2, effectiveRange: nil))
     }
 
 #if canImport(AppKit)

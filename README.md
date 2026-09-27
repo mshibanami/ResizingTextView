@@ -90,12 +90,9 @@ ResizingTextView(text: $text6)
         let sequenceRegex = try! NSRegularExpression(pattern: "[A-Z]+", options: [])
         let sequences = sequenceRegex.matches(in: text6, options: [], range: .init(location: 0, length: text6.utf16.count))
         let decorations: [TextDecoration] = sequences
-            .compactMap { sequence -> TextDecoration? in
-                guard let range = Range(sequence.range, in: text6) else {
-                    return nil
-                }
-                return TextDecoration(
-                    range: range,
+            .map { sequence in
+                TextDecoration(
+                    range: sequence.range,
                     attributes: [
                         .font: UXFont.boldSystemFont(ofSize: 16),
                         .foregroundColor: UXColor.systemRed,

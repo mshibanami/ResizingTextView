@@ -18,7 +18,7 @@ final class EquatableConformanceTests: XCTestCase {
         XCTAssertEqual(base, ResizingTextView(text: .constant("a")))
         XCTAssertNotEqual(base, ResizingTextView(text: .constant("b")))
         XCTAssertNotEqual(base, ResizingTextView(text: .constant("a"), placeholder: "p"))
-        XCTAssertNotEqual(base, base.decorations([TextDecoration(range: "a".startIndex..<"a".endIndex, attributes: [.kern: 1])]))
+        XCTAssertNotEqual(base, base.decorations([TextDecoration(range: NSRange(location: 0, length: 1), attributes: [.kern: 1])]))
 #if canImport(AppKit)
         XCTAssertNotEqual(base, base.textContainerInset(CGSize(width: 1, height: 1)))
         XCTAssertNotEqual(base, base.focusesNextKeyViewByTabKey(false))

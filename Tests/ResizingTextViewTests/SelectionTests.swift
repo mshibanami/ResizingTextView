@@ -7,7 +7,7 @@ private struct DecorationToggleHost: View {
     var body: some View {
         ResizingTextView(text: $m.text)
             .decorations(m.flag || m.text.isEmpty ? [] : [
-                TextDecoration(range: m.text.startIndex..<m.text.index(after: m.text.startIndex), attributes: [.kern: 1])
+                TextDecoration(range: NSRange(location: 0, length: 1), attributes: [.kern: 1])
             ])
     }
 }

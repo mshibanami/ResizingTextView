@@ -292,9 +292,8 @@ import SwiftUI
                 .foregroundColor: configuration.foregroundColor,
             ]
         )
-        for decoration in configuration.decorations where decoration.range.isValid(in: text) {
-            let nsRange = NSRange(decoration.range, in: text)
-            base.addAttributes(decoration.attributes, range: nsRange)
+        for decoration in configuration.decorations where decoration.range.isValid(inLength: text.utf16.count) {
+            base.addAttributes(decoration.attributes, range: decoration.range)
         }
         return AttributedString(base)
     }

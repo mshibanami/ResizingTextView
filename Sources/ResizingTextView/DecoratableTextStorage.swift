@@ -92,12 +92,12 @@ final class DecoratableTextStorage: NSTextStorage {
     }
 
     private func apply(_ map: AttributionMap, replacing oldMap: AttributionMap) {
-        let string = string
+        let length = backing.length
         let resolved = map.decorations.compactMap { decoration -> ResolvedDecoration? in
-            guard decoration.range.isValid(in: string) else {
+            guard decoration.range.isValid(inLength: length) else {
                 return nil
             }
-            return ResolvedDecoration(range: NSRange(decoration.range, in: string), attributes: decoration.attributes)
+            return ResolvedDecoration(range: decoration.range, attributes: decoration.attributes)
         }
 
         var dirtyIndexes = IndexSet()

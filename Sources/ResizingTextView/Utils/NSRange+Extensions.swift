@@ -7,4 +7,11 @@ extension NSRange {
         let location = Swift.min(location, maxLength)
         return NSRange(location: location, length: Swift.min(length, maxLength - location))
     }
+
+    func isValid(inLength length: Int) -> Bool {
+        location != NSNotFound
+            && location >= 0
+            && self.length >= 0
+            && upperBound <= length
+    }
 }

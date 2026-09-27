@@ -13,7 +13,7 @@ private struct ThirdCharacterHost: View {
             return []
         }
         let start = text.index(text.startIndex, offsetBy: 2)
-        return [TextDecoration(range: start..<text.index(after: start), attributes: [.font: boldFont])]
+        return [TextDecoration(range: start..<text.index(after: start), in: text, attributes: [.font: boldFont])]
     }
 }
 

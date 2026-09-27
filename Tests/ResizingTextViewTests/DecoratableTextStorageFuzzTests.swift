@@ -19,22 +19,22 @@ final class DecoratableTextStorageFuzzTests: XCTestCase {
 
     private func contentDecorations(_ string: String) -> [TextDecoration] {
         let regex = try! NSRegularExpression(pattern: "[A-Z]+|日本")
-        return regex.matches(in: string, range: NSRange(location: 0, length: string.utf16.count)).compactMap { match in
-            Range(match.range, in: string).map { TextDecoration(range: $0, attributes: [.kern: match.range.length]) }
+        return regex.matches(in: string, range: NSRange(location: 0, length: string.utf16.count)).map { match in
+            TextDecoration(range: match.range, attributes: [.kern: match.range.length])
         }
     }
 
     private func positionalDecorations(_ string: String) -> [TextDecoration] {
         stride(from: 1, to: string.count, by: 4).map { offset in
             let start = string.index(string.startIndex, offsetBy: offset)
-            return TextDecoration(range: start..<string.index(after: start), attributes: [.kern: offset])
+            return TextDecoration(range: start..<string.index(after: start), in: string, attributes: [.kern: offset])
         }
     }
 
     private func assertMatchesFullApplication(_ storage: DecoratableTextStorage, _ map: DecoratableTextStorage.AttributionMap, step: Int, file: StaticString = #filePath, line: UInt = #line) {
         let expected = NSMutableAttributedString(string: storage.string, attributes: [.font: map.defaultFont!])
-        for decoration in map.decorations where decoration.range.isValid(in: storage.string) {
-            expected.addAttributes(decoration.attributes, range: NSRange(decoration.range, in: storage.string))
+        for decoration in map.decorations where decoration.range.isValid(inLength: storage.length) {
+            expected.addAttributes(decoration.attributes, range: decoration.range)
         }
         for location in 0..<expected.length {
             let actualKern = storage.attribute(.kern, at: location, effectiveRange: nil) as? Int

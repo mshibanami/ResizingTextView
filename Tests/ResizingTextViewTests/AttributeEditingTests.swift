@@ -8,7 +8,7 @@ private struct DecoratedHost: View {
     @ObservedObject var m: TestModel
     var body: some View {
         ResizingTextView(text: $m.text).decorations(m.text.count > 1 ? [
-            TextDecoration(range: m.text.startIndex..<m.text.index(after: m.text.startIndex), attributes: [.foregroundColor: NSColor.red])
+            TextDecoration(range: NSRange(location: 0, length: 1), attributes: [.foregroundColor: NSColor.red])
         ] : [])
     }
 }
