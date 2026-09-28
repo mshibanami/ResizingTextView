@@ -11,6 +11,7 @@ final class TextViewMeasurer {
     private weak var textView: NSTextView?
     private var emptyLineFont: NSFont?
     private var linesByWidth: [CGFloat: [TextMeasurer.Line]] = [:]
+    private var sizesByWidth: [CGFloat?: CGSize] = [:]
     private var observation: NSObjectProtocol?
 
     func attach(to textView: NSTextView) {
@@ -43,6 +44,7 @@ final class TextViewMeasurer {
 
     func invalidate() {
         linesByWidth.removeAll()
+        sizesByWidth.removeAll()
     }
 
     private var verticalScrollerWidth: CGFloat {
@@ -62,12 +64,17 @@ final class TextViewMeasurer {
             return nil
         }
         let scrollerWidth = verticalScrollerWidth
-        var size = measurer.size(
-            of: textStorage,
-            width: width.map { max(0, $0 - scrollerWidth) },
-            like: textContainer,
-            emptyLineFont: emptyLineFont
-        )
+        let width = width.map { max(0, $0 - scrollerWidth) }
+        var size: CGSize
+        if let cachedSize = sizesByWidth[width] {
+            size = cachedSize
+        } else {
+            size = measurer.size(of: textStorage, width: width, like: textContainer, emptyLineFont: emptyLineFont)
+            if sizesByWidth.count >= Self.maxCachedWidthCount {
+                sizesByWidth.removeAll()
+            }
+            sizesByWidth[width] = size
+        }
         size.width += scrollerWidth
         return size
     }
