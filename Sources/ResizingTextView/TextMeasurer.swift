@@ -44,21 +44,8 @@ final class TextMeasurer {
         return size
     }
 
-    private var lineHeights: [UXFont: CGFloat] = [:]
-
     private func lineHeight(of font: UXFont) -> CGFloat {
-        if let height = lineHeights[font] {
-            return height
-        }
-        let storage = NSTextStorage(string: " ", attributes: [.font: font])
-        let layoutManager = NSLayoutManager()
-        let container = NSTextContainer(size: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude))
-        storage.addLayoutManager(layoutManager)
-        layoutManager.addTextContainer(container)
-        layoutManager.ensureLayout(for: container)
-        let height = layoutManager.usedRect(for: container).height
-        lineHeights[font] = height
-        return height
+        LineMetrics.of(font).height
     }
 
     private func numberOfLines() -> Int {
@@ -67,5 +54,31 @@ final class TextMeasurer {
             count += 1
         }
         return count
+    }
+}
+
+struct LineMetrics: Equatable {
+    var baseline: CGFloat
+    var height: CGFloat
+
+    @MainActor private static var cache: [UXFont: LineMetrics] = [:]
+
+    @MainActor static func of(_ font: UXFont) -> LineMetrics {
+        if let metrics = cache[font] {
+            return metrics
+        }
+        let storage = NSTextStorage(string: " ", attributes: [.font: font])
+        let layoutManager = NSLayoutManager()
+        let container = NSTextContainer(size: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude))
+        storage.addLayoutManager(layoutManager)
+        layoutManager.addTextContainer(container)
+        layoutManager.ensureLayout(for: container)
+        let lineRect = layoutManager.lineFragmentRect(forGlyphAt: 0, effectiveRange: nil)
+        let metrics = LineMetrics(
+            baseline: lineRect.minY + layoutManager.location(forGlyphAt: 0).y,
+            height: layoutManager.usedRect(for: container).height
+        )
+        cache[font] = metrics
+        return metrics
     }
 }

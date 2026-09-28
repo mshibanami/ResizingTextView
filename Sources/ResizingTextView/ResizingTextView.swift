@@ -122,7 +122,7 @@ import SwiftUI
     public var body: some View {
 #if canImport(AppKit)
         if #available(macOS 13.0, *) {
-            visibleTextViewWrapper
+            withTextBaselines(visibleTextViewWrapper)
         } else {
             invisibleSizingText
                 .overlay(visibleTextViewWrapper)
@@ -138,6 +138,24 @@ import SwiftUI
         }
 #endif
     }
+
+#if canImport(AppKit)
+    private func withTextBaselines(_ content: some View) -> some View {
+        let metrics = LineMetrics.of(configuration.font)
+        let top = effectiveTextContainerInset.height
+        let bottom = effectiveTextContainerInset.height
+            + ((configuration.isEditable && configuration.canHaveNewLineCharacters) ? 20 : 0)
+        return content
+            .alignmentGuide(.firstTextBaseline) { _ in
+                top + metrics.baseline
+            }
+            .alignmentGuide(.lastTextBaseline) { dimensions in
+                let textHeight = dimensions.height - top - bottom
+                let lineCount = max(1, (textHeight / metrics.height).rounded(.down))
+                return top + (lineCount - 1) * metrics.height + metrics.baseline
+            }
+    }
+#endif
 
     /// Sizes the view before `sizeThatFits(_:nsView:context:)`/`sizeThatFits(_:uiView:context:)` is available.
     @ViewBuilder var invisibleSizingText: some View {
