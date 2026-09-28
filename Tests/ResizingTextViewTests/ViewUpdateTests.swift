@@ -18,6 +18,27 @@ private struct InsetHost: View {
     }
 }
 
+private struct LayoutChangingHost: View {
+    enum Change {
+        case lineLimit
+        case font
+    }
+
+    @ObservedObject var m: TestModel
+    let text: String
+    let change: Change
+    var body: some View {
+        let isChanged = !m.flag
+        let lineLimit = change == .lineLimit && !isChanged ? 1 : nil
+        VStack(spacing: 0) {
+            ResizingTextView(text: .constant(text), isEditable: false, lineLimit: lineLimit)
+                .font(.systemFont(ofSize: change == .font && isChanged ? 30 : 13))
+            Spacer(minLength: 0)
+        }
+        .frame(width: 200)
+    }
+}
+
 #if canImport(UIKit)
 private struct KeyboardHost: View {
     @ObservedObject var m: TestModel
@@ -48,6 +69,36 @@ final class ViewUpdateTests: XCTestCase {
         XCTAssertEqual(h.textView.textContainerInset, CGSize(width: 40, height: 20))
 #else
         XCTAssertEqual(h.textView.textContainerInset, UIEdgeInsets(top: 20, left: 40, bottom: 20, right: 40))
+#endif
+    }
+
+    func testLineLimitChangeResizesTheView() {
+        assertViewGrows(text: "a\nb\nc", when: .lineLimit)
+    }
+
+    func testFontChangeResizesTheViewWithEmptyText() {
+        assertViewGrows(text: "", when: .font)
+    }
+
+    private func assertViewGrows(
+        text: String,
+        when change: LayoutChangingHost.Change,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let m = TestModel()
+        let h = Hosted(LayoutChangingHost(m: m, text: text, change: change))
+#if canImport(AppKit)
+        let view: NSView = h.textView.enclosingScrollView!
+#else
+        let view: UIView = h.textView
+#endif
+        let heightBefore = view.frame.height
+        m.flag = false
+        spin()
+        XCTAssertGreaterThan(view.frame.height, heightBefore * 2, file: file, line: line)
+#if canImport(AppKit)
+        h.close()
 #endif
     }
 
