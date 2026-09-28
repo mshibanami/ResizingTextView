@@ -48,8 +48,10 @@ final class DecoratableTextStorage: NSTextStorage {
     private var hasCharacterEditsSinceResolution = false
     private var isApplyingAttributionMap = false
 
+    private var cachedString: String = ""
+
     override var string: String {
-        backing.string
+        cachedString
     }
 
     override func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [NSAttributedString.Key: Any] {
@@ -77,6 +79,7 @@ final class DecoratableTextStorage: NSTextStorage {
         let replacementLength = (str as NSString).length
         beginEditing()
         backing.replaceCharacters(in: range, with: str)
+        cachedString = backing.mutableString.copy() as! NSString as String
         let delta = replacementLength - range.length
         shiftDecorations(forReplacingCharactersIn: range, replacementLength: replacementLength)
         hasCharacterEditsSinceResolution = true

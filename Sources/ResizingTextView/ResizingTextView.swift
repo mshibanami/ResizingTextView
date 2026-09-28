@@ -70,6 +70,9 @@ import SwiftUI
 #endif
 
     @State private var isFocused = false
+#if canImport(AppKit)
+    @State private var baselineMeasurer = TextBaselineMeasurer()
+#endif
 
 #if os(tvOS)
     public init(
@@ -141,18 +144,32 @@ import SwiftUI
 
 #if canImport(AppKit)
     private func withTextBaselines(_ content: some View) -> some View {
-        let metrics = LineMetrics.of(configuration.font)
-        let top = effectiveTextContainerInset.height
-        let bottom = effectiveTextContainerInset.height
+        let inset = effectiveTextContainerInset
+        let top = inset.height
+        let bottom = inset.height
             + ((configuration.isEditable && configuration.canHaveNewLineCharacters) ? 20 : 0)
+        let measurer = baselineMeasurer
+        measurer.content = TextBaselineMeasurer.Content(
+            text: text,
+            font: configuration.font,
+            decorations: configuration.decorations,
+            lineLimit: configuration.lineLimit ?? .max
+        )
+        @Sendable func lines(in dimensions: ViewDimensions) -> [TextMeasurer.Line] {
+            let width = max(0, dimensions.width - inset.width * 2)
+            return MainActor.assumeIsolated {
+                measurer.lines(width: width)
+            }
+        }
         return content
-            .alignmentGuide(.firstTextBaseline) { _ in
-                top + metrics.baseline
+            .alignmentGuide(.firstTextBaseline) { dimensions in
+                top + lines(in: dimensions)[0].baseline
             }
             .alignmentGuide(.lastTextBaseline) { dimensions in
+                let lines = lines(in: dimensions)
                 let textHeight = dimensions.height - top - bottom
-                let lineCount = max(1, (textHeight / metrics.height).rounded(.down))
-                return top + (lineCount - 1) * metrics.height + metrics.baseline
+                let lastLine = lines.last { $0.maxY <= textHeight + 0.5 } ?? lines[0]
+                return top + lastLine.baseline
             }
     }
 #endif

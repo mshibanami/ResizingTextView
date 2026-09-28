@@ -18,9 +18,47 @@ final class TextMeasurer {
         layoutManager.addTextContainer(textContainer)
     }
 
+    struct Line: Equatable {
+        var baseline: CGFloat
+        var maxY: CGFloat
+    }
+
     /// Returns the size of the laid out text as the text view shows it: the empty line after a trailing
     /// newline is omitted when the line limit is reached, and empty text is one line of `emptyLineFont`.
     func size(of textStorage: NSTextStorage, width: CGFloat?, like container: NSTextContainer, emptyLineFont: UXFont) -> CGSize {
+        layOut(textStorage, width: width, like: container)
+
+        var size = layoutManager.usedRect(for: textContainer).size
+        if textStorage.length == 0 {
+            size.height = lineHeight(of: emptyLineFont)
+        } else if !showsExtraLine(like: container) {
+            size.height -= layoutManager.extraLineFragmentUsedRect.height
+        }
+        return size
+    }
+
+    func lines(of textStorage: NSTextStorage, width: CGFloat?, like container: NSTextContainer, emptyLineFont: UXFont) -> [Line] {
+        layOut(textStorage, width: width, like: container)
+
+        let emptyLineMetrics = LineMetrics.of(emptyLineFont)
+        guard textStorage.length > 0 else {
+            return [Line(baseline: emptyLineMetrics.baseline, maxY: emptyLineMetrics.height)]
+        }
+        var lines: [Line] = []
+        layoutManager.enumerateLineFragments(forGlyphRange: layoutManager.glyphRange(for: textContainer)) { rect, usedRect, _, glyphRange, _ in
+            lines.append(Line(
+                baseline: rect.minY + self.layoutManager.location(forGlyphAt: glyphRange.location).y,
+                maxY: usedRect.maxY
+            ))
+        }
+        if showsExtraLine(like: container) {
+            let extraLineRect = layoutManager.extraLineFragmentUsedRect
+            lines.append(Line(baseline: extraLineRect.minY + emptyLineMetrics.baseline, maxY: extraLineRect.maxY))
+        }
+        return lines
+    }
+
+    private func layOut(_ textStorage: NSTextStorage, width: CGFloat?, like container: NSTextContainer) {
         if self.textStorage !== textStorage {
             self.textStorage?.removeLayoutManager(layoutManager)
             textStorage.addLayoutManager(layoutManager)
@@ -31,17 +69,11 @@ final class TextMeasurer {
         textContainer.lineBreakMode = container.lineBreakMode
         textContainer.size = CGSize(width: width ?? .greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
         layoutManager.ensureLayout(for: textContainer)
+    }
 
-        var size = layoutManager.usedRect(for: textContainer).size
-        let extraLineHeight = layoutManager.extraLineFragmentUsedRect.height
-        if textStorage.length == 0 {
-            size.height = lineHeight(of: emptyLineFont)
-        } else if extraLineHeight > 0,
-                  container.maximumNumberOfLines > 0,
-                  numberOfLines() >= container.maximumNumberOfLines {
-            size.height -= extraLineHeight
-        }
-        return size
+    private func showsExtraLine(like container: NSTextContainer) -> Bool {
+        layoutManager.extraLineFragmentUsedRect.height > 0
+            && !(container.maximumNumberOfLines > 0 && numberOfLines() >= container.maximumNumberOfLines)
     }
 
     private func lineHeight(of font: UXFont) -> CGFloat {
