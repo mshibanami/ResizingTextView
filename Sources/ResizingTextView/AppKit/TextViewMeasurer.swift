@@ -45,6 +45,13 @@ final class TextViewMeasurer {
         linesByWidth.removeAll()
     }
 
+    private var verticalScrollerWidth: CGFloat {
+        guard let scrollView = textView?.enclosingScrollView else {
+            return 0
+        }
+        return max(0, scrollView.frame.width - scrollView.contentSize.width)
+    }
+
     private func textDidChange() {
         invalidate()
         textView?.enclosingScrollView?.invalidateIntrinsicContentSize()
@@ -54,10 +61,19 @@ final class TextViewMeasurer {
         guard let textView, let textStorage = textView.textStorage, let textContainer = textView.textContainer, let emptyLineFont else {
             return nil
         }
-        return measurer.size(of: textStorage, width: width, like: textContainer, emptyLineFont: emptyLineFont)
+        let scrollerWidth = verticalScrollerWidth
+        var size = measurer.size(
+            of: textStorage,
+            width: width.map { max(0, $0 - scrollerWidth) },
+            like: textContainer,
+            emptyLineFont: emptyLineFont
+        )
+        size.width += scrollerWidth
+        return size
     }
 
     func lines(width: CGFloat) -> [TextMeasurer.Line]? {
+        let width = max(0, width - verticalScrollerWidth)
         if let lines = linesByWidth[width] {
             return lines
         }

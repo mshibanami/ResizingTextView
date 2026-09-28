@@ -106,7 +106,8 @@ import SwiftUI
         let scrollView = TextEnclosingScrollView()
         scrollView.documentView = textView
         scrollView.drawsBackground = false
-        scrollView.hasVerticalScroller = isScrollable
+        scrollView.hasVerticalScroller = hasVerticalScroller
+        scrollView.autohidesScrollers = true
         
         context.coordinator.nsView = textView
 
@@ -123,15 +124,11 @@ import SwiftUI
         measurer.attach(to: textView)
         measurer.setEmptyLineFont(font)
         
-        if view.isScrollable != isScrollable || view.hasVerticalScroller != isScrollable {
+        if view.isScrollable != isScrollable {
             view.isScrollable = isScrollable
-            view.hasVerticalScroller = isScrollable
         }
-
-        let documentHeightIsChanged = (view.documentView?.bounds.height ?? 0) > view.bounds.height
-        let scrollerStyle = (isScrollable && documentHeightIsChanged) ? NSScroller.preferredScrollerStyle : .overlay
-        if view.scrollerStyle != scrollerStyle {
-            view.scrollerStyle = scrollerStyle
+        if view.hasVerticalScroller != hasVerticalScroller {
+            view.hasVerticalScroller = hasVerticalScroller
         }
         
         if let placeholder {
@@ -195,6 +192,10 @@ import SwiftUI
             width: fittingWidth(textWidth: ceil(textSize.width) + inset.width * 2, proposal: proposal),
             height: isEditable && isScrollable ? proposal.height ?? textHeight : textHeight
         )
+    }
+
+    private var hasVerticalScroller: Bool {
+        isEditable && isScrollable
     }
 
     static func spaceForNewLine(isEditable: Bool, canHaveNewLineCharacters: Bool) -> CGFloat {
