@@ -27,7 +27,7 @@ final class TextViewMeasurer {
             queue: nil
         ) { [weak self] _ in
             MainActor.assumeIsolated {
-                self?.invalidate()
+                self?.textDidChange()
             }
         }
         invalidate()
@@ -43,6 +43,11 @@ final class TextViewMeasurer {
 
     func invalidate() {
         linesByWidth.removeAll()
+    }
+
+    private func textDidChange() {
+        invalidate()
+        textView?.enclosingScrollView?.invalidateIntrinsicContentSize()
     }
 
     func size(width: CGFloat?) -> CGSize? {
