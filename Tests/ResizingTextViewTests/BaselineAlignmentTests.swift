@@ -51,6 +51,26 @@ private struct BaselineHost: View {
     }
 }
 
+@available(macOS 13.0, iOS 16.0, *)
+private struct TypingBaselineHost: View {
+    @ObservedObject var model: TestModel
+    let guides: BaselineGuides
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            BaselineReader(guides: guides) {
+                ResizingTextView(text: $model.text)
+                    .decorations(model.text.count > 20 ? [TextDecoration(
+                        range: NSRange(location: 0, length: 1),
+                        attributes: [.font: UXFont.boldSystemFont(ofSize: 26)]
+                    )] : [])
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(width: 200)
+    }
+}
+
 @MainActor
 final class BaselineAlignmentTests: XCTestCase {
     private struct Case {
@@ -122,6 +142,25 @@ final class BaselineAlignmentTests: XCTestCase {
             hosted.close()
 #endif
         }
+    }
+
+    func testTextBaselinesFollowTypedText() throws {
+        guard #available(macOS 13.0, iOS 16.0, *) else {
+            throw XCTSkip("Layout is unavailable")
+        }
+        let model = TestModel()
+        let guides = BaselineGuides()
+        let hosted = Hosted(TypingBaselineHost(model: model, guides: guides))
+        hosted.focus()
+        for text in ["hello", " world and more words to wrap", "\nnext line"] {
+            hosted.type(text)
+            let (expectedFirst, expectedLast) = Self.baselines(of: hosted.textView)
+            XCTAssertEqual(guides.first ?? -1, expectedFirst, accuracy: 0.5, "first baseline: \(model.text)")
+            XCTAssertEqual(guides.last ?? -1, expectedLast, accuracy: 0.5, "last baseline: \(model.text)")
+        }
+#if canImport(AppKit)
+        hosted.close()
+#endif
     }
 
     private static func baselines(of textView: some PlatformTextViewForTests) -> (CGFloat, CGFloat) {

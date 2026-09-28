@@ -21,6 +21,7 @@ import SwiftUI
     var onInsertNewline: (() -> Bool)?
     var textContainerInset: CGSize
     var hasGreedyWidth: Bool
+    var measurer: TextViewMeasurer
 
     init(
         _ text: Binding<String>,
@@ -37,7 +38,8 @@ import SwiftUI
         onFocusChanged: ((Bool) -> Void)?,
         onInsertNewline: (() -> Bool)?,
         textContainerInset: CGSize,
-        hasGreedyWidth: Bool
+        hasGreedyWidth: Bool,
+        measurer: TextViewMeasurer
     ) {
         self._text = text
         self.decorations = decorations
@@ -54,6 +56,7 @@ import SwiftUI
         self.onInsertNewline = onInsertNewline
         self.textContainerInset = textContainerInset
         self.hasGreedyWidth = hasGreedyWidth
+        self.measurer = measurer
     }
 
     func makeNSView(context: Context) -> TextEnclosingScrollView {
@@ -117,6 +120,8 @@ import SwiftUI
             assertionFailure()
             return
         }
+        measurer.attach(to: textView)
+        measurer.setEmptyLineFont(font)
         
         if view.isScrollable != isScrollable || view.hasVerticalScroller != isScrollable {
             view.isScrollable = isScrollable
@@ -165,28 +170,25 @@ import SwiftUI
         }
         if textView.textContainer?.maximumNumberOfLines != lineLimit {
             textView.textContainer?.maximumNumberOfLines = lineLimit
+            measurer.invalidate()
         }
         if lineLimit > 0 {
             if textView.textContainer?.lineBreakMode != .byTruncatingTail {
                 textView.textContainer?.lineBreakMode = .byTruncatingTail
+                measurer.invalidate()
             }
         }
     }
     
     @available(macOS 13.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: TextEnclosingScrollView, context: Context) -> CGSize? {
-        guard let textView = nsView.documentView as? NSTextView,
-              let textContainer = textView.textContainer,
-              let textStorage = textView.textStorage else {
+        guard let textView = nsView.documentView as? NSTextView else {
             return nil
         }
         let inset = textView.textContainerInset
-        let textSize = context.coordinator.measurer.size(
-            of: textStorage,
-            width: proposal.width.map { max(0, $0 - inset.width * 2) },
-            like: textContainer,
-            emptyLineFont: font
-        )
+        guard let textSize = measurer.size(width: proposal.width.map { max(0, $0 - inset.width * 2) }) else {
+            return nil
+        }
         let spaceForNewLine: CGFloat = isEditable && canHaveNewLineCharacters ? 20 : 0
         let textHeight = ceil(textSize.height) + inset.height * 2 + spaceForNewLine
         return CGSize(
@@ -218,7 +220,6 @@ import SwiftUI
     @MainActor final class Coordinator: NSObject, NSTextViewDelegate {
         fileprivate var swiftUIView: TextView
         fileprivate weak var nsView: CustomTextView?
-        fileprivate let measurer = TextMeasurer()
 
         init(swiftUIView: TextView) {
             self.swiftUIView = swiftUIView

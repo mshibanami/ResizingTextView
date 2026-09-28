@@ -8,7 +8,7 @@ final class EquatableConformanceTests: XCTestCase {
         let labels = Set(Mirror(reflecting: ResizingTextView(text: .constant(""))).children.compactMap(\.label))
         var expected: Set<String> = ["_text", "configuration", "__isFocused", "_layoutDirection"]
 #if canImport(AppKit)
-        expected.formUnion(["onInsertNewline", "_controlActiveState", "__baselineMeasurer"])
+        expected.formUnion(["onInsertNewline", "_controlActiveState", "__measurer"])
 #endif
         XCTAssertEqual(labels, expected, "Add new properties to ResizingTextView.Configuration so that == compares them")
     }

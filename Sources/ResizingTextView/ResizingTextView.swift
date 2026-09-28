@@ -71,7 +71,7 @@ import SwiftUI
 
     @State private var isFocused = false
 #if canImport(AppKit)
-    @State private var baselineMeasurer = TextBaselineMeasurer()
+    @State private var measurer = TextViewMeasurer()
 #endif
 
 #if os(tvOS)
@@ -148,18 +148,13 @@ import SwiftUI
         let top = inset.height
         let bottom = inset.height
             + ((configuration.isEditable && configuration.canHaveNewLineCharacters) ? 20 : 0)
-        let measurer = baselineMeasurer
-        measurer.content = TextBaselineMeasurer.Content(
-            text: text,
-            font: configuration.font,
-            decorations: configuration.decorations,
-            lineLimit: configuration.lineLimit ?? .max
-        )
+        let measurer = measurer
+        let emptyLineMetrics = LineMetrics.of(configuration.font)
         @Sendable func lines(in dimensions: ViewDimensions) -> [TextMeasurer.Line] {
             let width = max(0, dimensions.width - inset.width * 2)
             return MainActor.assumeIsolated {
                 measurer.lines(width: width)
-            }
+            } ?? [TextMeasurer.Line(baseline: emptyLineMetrics.baseline, maxY: emptyLineMetrics.height)]
         }
         return content
             .alignmentGuide(.firstTextBaseline) { dimensions in
@@ -238,7 +233,8 @@ import SwiftUI
             },
             onInsertNewline: onInsertNewline,
             textContainerInset: effectiveTextContainerInset,
-            hasGreedyWidth: configuration.hasGreedyWidth
+            hasGreedyWidth: configuration.hasGreedyWidth,
+            measurer: measurer
         )
         .background(configuration.isEditable ? Color(UXColor.controlBackgroundColor) : .clear)
         .roundedFilledBorder(
