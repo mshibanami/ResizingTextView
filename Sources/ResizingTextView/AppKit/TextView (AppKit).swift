@@ -189,12 +189,16 @@ import SwiftUI
         guard let textSize = measurer.size(width: proposal.width.map { max(0, $0 - inset.width * 2) }) else {
             return nil
         }
-        let spaceForNewLine: CGFloat = isEditable && canHaveNewLineCharacters ? 20 : 0
+        let spaceForNewLine = Self.spaceForNewLine(isEditable: isEditable, canHaveNewLineCharacters: canHaveNewLineCharacters)
         let textHeight = ceil(textSize.height) + inset.height * 2 + spaceForNewLine
         return CGSize(
             width: fittingWidth(textWidth: ceil(textSize.width) + inset.width * 2, proposal: proposal),
             height: isEditable && isScrollable ? proposal.height ?? textHeight : textHeight
         )
+    }
+
+    static func spaceForNewLine(isEditable: Bool, canHaveNewLineCharacters: Bool) -> CGFloat {
+        isEditable && canHaveNewLineCharacters ? 20 : 0
     }
 
     @available(macOS 13.0, *)

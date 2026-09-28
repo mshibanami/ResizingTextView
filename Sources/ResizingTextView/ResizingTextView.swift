@@ -46,6 +46,12 @@ import SwiftUI
     var configuration: Configuration
 #if canImport(AppKit)
     var onInsertNewline: (() -> Bool)?
+    var spaceForNewLine: CGFloat {
+        TextView.spaceForNewLine(
+            isEditable: configuration.isEditable,
+            canHaveNewLineCharacters: configuration.canHaveNewLineCharacters
+        )
+    }
     var effectiveTextContainerInset: CGSize {
         configuration.textContainerInset ?? {
             var inset = CGSize(width: -5, height: 0)
@@ -147,7 +153,7 @@ import SwiftUI
         let inset = effectiveTextContainerInset
         let top = inset.height
         let bottom = inset.height
-            + ((configuration.isEditable && configuration.canHaveNewLineCharacters) ? 20 : 0)
+            + spaceForNewLine
         let measurer = measurer
         let emptyLineMetrics = LineMetrics.of(configuration.font)
         @Sendable func lines(in dimensions: ViewDimensions) -> [TextMeasurer.Line] {
@@ -178,7 +184,7 @@ import SwiftUI
         Text(makeAttributedString())
             .lineLimit(configuration.lineLimit ?? .max)
 #if canImport(AppKit)
-            .padding(.bottom, (configuration.isEditable && configuration.canHaveNewLineCharacters) ? 20 : 0)
+            .padding(.bottom, spaceForNewLine)
             .padding(EdgeInsets(
                 top: effectiveTextContainerInset.height,
                 leading: effectiveTextContainerInset.width + textViewLineFragmentPadding,
