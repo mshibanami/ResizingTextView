@@ -4,33 +4,25 @@
 import AppKit
 
 @MainActor
-final class TextViewMeasurer {
-    private static let maxCachedWidthCount = 8
-
+final class TextViewMeasurer: NSObject {
     private lazy var measurer = TextMeasurer()
     private weak var textView: NSTextView?
     private var emptyLineFont: NSFont?
-    private var linesByWidth: [CGFloat: [TextMeasurer.Line]] = [:]
-    private var sizesByWidth: [CGFloat?: CGSize] = [:]
-    private var observation: NSObjectProtocol?
+    private var sizesByWidth = WidthCache<CGFloat?, CGSize>()
+    private var linesByWidth = WidthCache<CGFloat, [TextMeasurer.Line]>()
 
     func attach(to textView: NSTextView) {
         guard self.textView !== textView else {
             return
         }
         self.textView = textView
-        if let observation {
-            NotificationCenter.default.removeObserver(observation)
-        }
-        observation = NotificationCenter.default.addObserver(
-            forName: NSTextStorage.didProcessEditingNotification,
-            object: textView.textStorage,
-            queue: nil
-        ) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.textDidChange()
-            }
-        }
+        NotificationCenter.default.removeObserver(self, name: NSTextStorage.didProcessEditingNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(storageDidProcessEditing),
+            name: NSTextStorage.didProcessEditingNotification,
+            object: textView.textStorage
+        )
         invalidate()
     }
 
@@ -43,8 +35,36 @@ final class TextViewMeasurer {
     }
 
     func invalidate() {
-        linesByWidth.removeAll()
         sizesByWidth.removeAll()
+        linesByWidth.removeAll()
+    }
+
+    func size(width: CGFloat?) -> CGSize? {
+        let scrollerWidth = verticalScrollerWidth
+        let width = width.map { max(0, $0 - scrollerWidth) }
+        guard var size = sizesByWidth.value(for: width, make: {
+            measure { measurer.size(of: $0, width: width, like: $1, emptyLineFont: $2) }
+        }) else {
+            return nil
+        }
+        size.width += scrollerWidth
+        return size
+    }
+
+    func lines(width: CGFloat) -> [TextMeasurer.Line]? {
+        let width = max(0, width - verticalScrollerWidth)
+        return linesByWidth.value(for: width, make: {
+            measure { measurer.lines(of: $0, width: width, like: $1, emptyLineFont: $2) }
+        })
+    }
+
+    private func measure<Value>(_ body: (NSTextStorage, NSTextContainer, NSFont) -> Value) -> Value? {
+        guard let textStorage = textView?.textStorage,
+              let textContainer = textView?.textContainer,
+              let emptyLineFont else {
+            return nil
+        }
+        return body(textStorage, textContainer, emptyLineFont)
     }
 
     private var verticalScrollerWidth: CGFloat {
@@ -54,45 +74,33 @@ final class TextViewMeasurer {
         return max(0, scrollView.frame.width - scrollView.contentSize.width)
     }
 
-    private func textDidChange() {
+    @objc private func storageDidProcessEditing(_ notification: Notification) {
         invalidate()
         textView?.enclosingScrollView?.invalidateIntrinsicContentSize()
     }
+}
 
-    func size(width: CGFloat?) -> CGSize? {
-        guard let textView, let textStorage = textView.textStorage, let textContainer = textView.textContainer, let emptyLineFont else {
+private struct WidthCache<Width: Hashable, Value> {
+    private static var maxCount: Int { 8 }
+
+    private var values: [Width: Value] = [:]
+
+    mutating func value(for width: Width, make: () -> Value?) -> Value? {
+        if let value = values[width] {
+            return value
+        }
+        guard let value = make() else {
             return nil
         }
-        let scrollerWidth = verticalScrollerWidth
-        let width = width.map { max(0, $0 - scrollerWidth) }
-        var size: CGSize
-        if let cachedSize = sizesByWidth[width] {
-            size = cachedSize
-        } else {
-            size = measurer.size(of: textStorage, width: width, like: textContainer, emptyLineFont: emptyLineFont)
-            if sizesByWidth.count >= Self.maxCachedWidthCount {
-                sizesByWidth.removeAll()
-            }
-            sizesByWidth[width] = size
+        if values.count >= Self.maxCount {
+            values.removeAll()
         }
-        size.width += scrollerWidth
-        return size
+        values[width] = value
+        return value
     }
 
-    func lines(width: CGFloat) -> [TextMeasurer.Line]? {
-        let width = max(0, width - verticalScrollerWidth)
-        if let lines = linesByWidth[width] {
-            return lines
-        }
-        guard let textView, let textStorage = textView.textStorage, let textContainer = textView.textContainer, let emptyLineFont else {
-            return nil
-        }
-        if linesByWidth.count >= Self.maxCachedWidthCount {
-            linesByWidth.removeAll()
-        }
-        let lines = measurer.lines(of: textStorage, width: width, like: textContainer, emptyLineFont: emptyLineFont)
-        linesByWidth[width] = lines
-        return lines
+    mutating func removeAll() {
+        values.removeAll()
     }
 }
 #endif

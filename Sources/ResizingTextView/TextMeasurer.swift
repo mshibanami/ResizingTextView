@@ -37,7 +37,12 @@ final class TextMeasurer {
         return size
     }
 
-    func lines(of textStorage: NSTextStorage, width: CGFloat?, like container: NSTextContainer, emptyLineFont: UXFont) -> [Line] {
+    func lines(
+        of textStorage: NSTextStorage,
+        width: CGFloat?,
+        like container: NSTextContainer,
+        emptyLineFont: UXFont
+    ) -> [Line] {
         layOut(textStorage, width: width, like: container)
 
         let emptyLineMetrics = LineMetrics.of(emptyLineFont)
@@ -45,7 +50,8 @@ final class TextMeasurer {
             return [Line(baseline: emptyLineMetrics.baseline, maxY: emptyLineMetrics.height)]
         }
         var lines: [Line] = []
-        layoutManager.enumerateLineFragments(forGlyphRange: layoutManager.glyphRange(for: textContainer)) { rect, usedRect, _, glyphRange, _ in
+        let allGlyphs = layoutManager.glyphRange(for: textContainer)
+        layoutManager.enumerateLineFragments(forGlyphRange: allGlyphs) { rect, usedRect, _, glyphRange, _ in
             lines.append(Line(
                 baseline: rect.minY + self.layoutManager.location(forGlyphAt: glyphRange.location).y,
                 maxY: usedRect.maxY

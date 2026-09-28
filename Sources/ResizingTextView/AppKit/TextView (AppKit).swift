@@ -186,7 +186,10 @@ import SwiftUI
         guard let textSize = measurer.size(width: proposal.width.map { max(0, $0 - inset.width * 2) }) else {
             return nil
         }
-        let spaceForNewLine = Self.spaceForNewLine(isEditable: isEditable, canHaveNewLineCharacters: canHaveNewLineCharacters)
+        let spaceForNewLine = Self.spaceForNewLine(
+            isEditable: isEditable,
+            canHaveNewLineCharacters: canHaveNewLineCharacters
+        )
         let textHeight = ceil(textSize.height) + inset.height * 2 + spaceForNewLine
         return CGSize(
             width: fittingWidth(textWidth: ceil(textSize.width) + inset.width * 2, proposal: proposal),

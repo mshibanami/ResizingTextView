@@ -152,8 +152,7 @@ import SwiftUI
     private func withTextBaselines(_ content: some View) -> some View {
         let inset = effectiveTextContainerInset
         let top = inset.height
-        let bottom = inset.height
-            + spaceForNewLine
+        let bottom = inset.height + spaceForNewLine
         let measurer = measurer
         let emptyLineMetrics = LineMetrics.of(configuration.font)
         @Sendable func lines(in dimensions: ViewDimensions) -> [TextMeasurer.Line] {

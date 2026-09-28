@@ -48,7 +48,7 @@ final class DecoratableTextStorage: NSTextStorage {
     private var hasCharacterEditsSinceResolution = false
     private var isApplyingAttributionMap = false
 
-    private var cachedString: String = ""
+    private var cachedString = ""
 
     override var string: String {
         cachedString
@@ -58,15 +58,28 @@ final class DecoratableTextStorage: NSTextStorage {
         backing.attributes(at: location, effectiveRange: range)
     }
 
-    override func attribute(_ attrName: NSAttributedString.Key, at location: Int, effectiveRange range: NSRangePointer?) -> Any? {
+    override func attribute(
+        _ attrName: NSAttributedString.Key,
+        at location: Int,
+        effectiveRange range: NSRangePointer?
+    ) -> Any? {
         backing.attribute(attrName, at: location, effectiveRange: range)
     }
 
-    override func attribute(_ attrName: NSAttributedString.Key, at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> Any? {
+    override func attribute(
+        _ attrName: NSAttributedString.Key,
+        at location: Int,
+        longestEffectiveRange range: NSRangePointer?,
+        in rangeLimit: NSRange
+    ) -> Any? {
         backing.attribute(attrName, at: location, longestEffectiveRange: range, in: rangeLimit)
     }
 
-    override func attributes(at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> [NSAttributedString.Key: Any] {
+    override func attributes(
+        at location: Int,
+        longestEffectiveRange range: NSRangePointer?,
+        in rangeLimit: NSRange
+    ) -> [NSAttributedString.Key: Any] {
         backing.attributes(at: location, longestEffectiveRange: range, in: rangeLimit)
     }
 
@@ -91,7 +104,7 @@ final class DecoratableTextStorage: NSTextStorage {
         let replacementLength = (str as NSString).length
         beginEditing()
         backing.replaceCharacters(in: range, with: str)
-        cachedString = backing.mutableString.copy() as! NSString as String
+        cachedString = backing.string
         let delta = replacementLength - range.length
         shiftDecorations(forReplacingCharactersIn: range, replacementLength: replacementLength)
         hasCharacterEditsSinceResolution = true
