@@ -58,6 +58,18 @@ final class DecoratableTextStorage: NSTextStorage {
         backing.attributes(at: location, effectiveRange: range)
     }
 
+    override func attribute(_ attrName: NSAttributedString.Key, at location: Int, effectiveRange range: NSRangePointer?) -> Any? {
+        backing.attribute(attrName, at: location, effectiveRange: range)
+    }
+
+    override func attribute(_ attrName: NSAttributedString.Key, at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> Any? {
+        backing.attribute(attrName, at: location, longestEffectiveRange: range, in: rangeLimit)
+    }
+
+    override func attributes(at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> [NSAttributedString.Key: Any] {
+        backing.attributes(at: location, longestEffectiveRange: range, in: rangeLimit)
+    }
+
     /// The default implementation reads attribute runs through `attributes(at:effectiveRange:)`,
     /// which scans far beyond `range` when runs are fragmented by font fallback (e.g. CJK text).
     override func fixAttributes(in range: NSRange) {

@@ -22,6 +22,32 @@ private struct ThirdCharacterHost: View {
 
 @MainActor
 final class DecoratableTextStorageTests: XCTestCase {
+    func testAttributeLookupsAgreeWithTheAttributesOfEachCharacter() {
+        let storage = DecoratableTextStorage()
+        let text = "abc 日本語 😀 def\nghi"
+        storage.replaceCharacters(in: NSRange(), with: text)
+        storage.attributionMap = .init(defaultFont: regularFont, defaultForegroundColor: .black, decorations: [
+            TextDecoration(range: NSRange(location: 1, length: 3), attributes: [.font: boldFont]),
+            TextDecoration(range: NSRange(location: 2, length: 6), attributes: [.underlineStyle: 1]),
+        ])
+        let whole = NSRange(location: 0, length: storage.length)
+        for location in 0..<storage.length {
+            var range = NSRange()
+            let attributes = storage.attributes(at: location, effectiveRange: &range)
+            for key in [NSAttributedString.Key.font, .foregroundColor, .underlineStyle] {
+                var attributeRange = NSRange()
+                XCTAssertEqual(storage.attribute(key, at: location, effectiveRange: &attributeRange) as? NSObject, attributes[key] as? NSObject)
+                XCTAssertTrue(NSLocationInRange(location, attributeRange))
+                var longestRange = NSRange()
+                XCTAssertEqual(storage.attribute(key, at: location, longestEffectiveRange: &longestRange, in: whole) as? NSObject, attributes[key] as? NSObject)
+                XCTAssertTrue(NSLocationInRange(location, longestRange))
+            }
+            var longestRange = NSRange()
+            XCTAssertEqual(NSDictionary(dictionary: storage.attributes(at: location, longestEffectiveRange: &longestRange, in: whole)), NSDictionary(dictionary: attributes))
+            XCTAssertTrue(NSLocationInRange(location, longestRange))
+        }
+    }
+
     private func font(_ storage: NSTextStorage, _ location: Int) -> UXFont? {
         storage.attribute(.font, at: location, effectiveRange: nil) as? UXFont
     }
