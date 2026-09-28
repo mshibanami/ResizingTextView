@@ -4,13 +4,13 @@ import XCTest
 @testable import ResizingTextView
 
 @MainActor
-private final class BaselineGuides {
+final class BaselineGuides {
     var first: CGFloat?
     var last: CGFloat?
 }
 
 @available(macOS 13.0, iOS 16.0, *)
-private struct BaselineReader: Layout {
+struct BaselineReader: Layout {
     let guides: BaselineGuides
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
@@ -83,7 +83,7 @@ final class BaselineAlignmentTests: XCTestCase {
 
     private static let wrappingText = String(repeating: "wrap me ", count: 6)
 
-    private let cases: [Case] = [
+    private static let cases: [Case] = [
         Case(text: "hello"),
         Case(text: String(repeating: "wrap me ", count: 12)),
         Case(text: "hello\nworld"),
@@ -91,22 +91,22 @@ final class BaselineAlignmentTests: XCTestCase {
         Case(text: "hello", isEditable: true),
         Case(text: "hello\nworld", isEditable: true),
         Case(text: String(repeating: "title ", count: 8), font: .preferredFont(forTextStyle: .title1)),
-        Case(text: "hello world", decorations: [BaselineAlignmentTests.decoration(at: 6, font: .boldSystemFont(ofSize: 26))]),
-        Case(text: "hello world", decorations: [BaselineAlignmentTests.decoration(at: 0, font: .systemFont(ofSize: 8))]),
+        Case(text: "hello world", decorations: [decoration(at: 6, font: .boldSystemFont(ofSize: 26))]),
+        Case(text: "hello world", decorations: [decoration(at: 0, font: .systemFont(ofSize: 8))]),
         Case(
-            text: BaselineAlignmentTests.wrappingText + "\nend",
-            decorations: [BaselineAlignmentTests.decoration(at: BaselineAlignmentTests.wrappingText.utf16.count + 1, font: .boldSystemFont(ofSize: 26))]
+            text: wrappingText + "\nend",
+            decorations: [decoration(at: wrappingText.utf16.count + 1, font: .boldSystemFont(ofSize: 26))]
         ),
-        Case(text: "hello\n" + BaselineAlignmentTests.wrappingText, decorations: [BaselineAlignmentTests.decoration(at: 0, font: .boldSystemFont(ofSize: 26))]),
+        Case(text: "hello\n" + wrappingText, decorations: [decoration(at: 0, font: .boldSystemFont(ofSize: 26))]),
         Case(
-            text: "hello\n" + BaselineAlignmentTests.wrappingText,
+            text: "hello\n" + wrappingText,
             isEditable: true,
-            decorations: [BaselineAlignmentTests.decoration(at: 0, font: .boldSystemFont(ofSize: 26))]
+            decorations: [decoration(at: 0, font: .boldSystemFont(ofSize: 26))]
         ),
         Case(
             text: String(repeating: "wrap me ", count: 12),
             lineLimit: 2,
-            decorations: [BaselineAlignmentTests.decoration(at: 0, font: .boldSystemFont(ofSize: 26))]
+            decorations: [decoration(at: 0, font: .boldSystemFont(ofSize: 26))]
         ),
         Case(text: "https://example.com/*", decorations: [TextDecoration(
             range: NSRange(location: 8, length: 5),
@@ -124,7 +124,7 @@ final class BaselineAlignmentTests: XCTestCase {
         guard #available(macOS 13.0, iOS 16.0, *) else {
             throw XCTSkip("Layout is unavailable")
         }
-        for testCase in cases {
+        for testCase in Self.cases {
             let guides = BaselineGuides()
             let hosted = Hosted(BaselineHost(
                 text: testCase.text,
@@ -163,7 +163,7 @@ final class BaselineAlignmentTests: XCTestCase {
 #endif
     }
 
-    private static func baselines(of textView: some PlatformTextViewForTests) -> (CGFloat, CGFloat) {
+    static func baselines(of textView: some PlatformTextViewForTests) -> (CGFloat, CGFloat) {
         let layoutManager = textView.testLayoutManager
         let glyphRange = layoutManager.glyphRange(for: textView.testTextContainer)
         func baseline(ofGlyphAt index: Int) -> CGFloat {
@@ -175,7 +175,7 @@ final class BaselineAlignmentTests: XCTestCase {
 }
 
 @MainActor
-private protocol PlatformTextViewForTests {
+protocol PlatformTextViewForTests {
     var testLayoutManager: NSLayoutManager { get }
     var testTextContainer: NSTextContainer { get }
     var testTextContainerTop: CGFloat { get }
@@ -183,15 +183,15 @@ private protocol PlatformTextViewForTests {
 
 #if canImport(AppKit)
 extension NSTextView: PlatformTextViewForTests {
-    fileprivate var testLayoutManager: NSLayoutManager { layoutManager! }
-    fileprivate var testTextContainer: NSTextContainer { textContainer! }
-    fileprivate var testTextContainerTop: CGFloat { textContainerOrigin.y }
+    var testLayoutManager: NSLayoutManager { layoutManager! }
+    var testTextContainer: NSTextContainer { textContainer! }
+    var testTextContainerTop: CGFloat { textContainerOrigin.y }
 }
 #else
 extension UITextView: PlatformTextViewForTests {
-    fileprivate var testLayoutManager: NSLayoutManager { layoutManager }
-    fileprivate var testTextContainer: NSTextContainer { textContainer }
-    fileprivate var testTextContainerTop: CGFloat { textContainerInset.top }
+    var testLayoutManager: NSLayoutManager { layoutManager }
+    var testTextContainer: NSTextContainer { textContainer }
+    var testTextContainerTop: CGFloat { textContainerInset.top }
 }
 #endif
 #endif

@@ -35,15 +35,19 @@ final class DecoratableTextStorageTests: XCTestCase {
             var range = NSRange()
             let attributes = storage.attributes(at: location, effectiveRange: &range)
             for key in [NSAttributedString.Key.font, .foregroundColor, .underlineStyle] {
+                let expected = attributes[key] as? NSObject
                 var attributeRange = NSRange()
-                XCTAssertEqual(storage.attribute(key, at: location, effectiveRange: &attributeRange) as? NSObject, attributes[key] as? NSObject)
+                let attribute = storage.attribute(key, at: location, effectiveRange: &attributeRange)
+                XCTAssertEqual(attribute as? NSObject, expected)
                 XCTAssertTrue(NSLocationInRange(location, attributeRange))
                 var longestRange = NSRange()
-                XCTAssertEqual(storage.attribute(key, at: location, longestEffectiveRange: &longestRange, in: whole) as? NSObject, attributes[key] as? NSObject)
+                let longest = storage.attribute(key, at: location, longestEffectiveRange: &longestRange, in: whole)
+                XCTAssertEqual(longest as? NSObject, expected)
                 XCTAssertTrue(NSLocationInRange(location, longestRange))
             }
             var longestRange = NSRange()
-            XCTAssertEqual(NSDictionary(dictionary: storage.attributes(at: location, longestEffectiveRange: &longestRange, in: whole)), NSDictionary(dictionary: attributes))
+            let longest = storage.attributes(at: location, longestEffectiveRange: &longestRange, in: whole)
+            XCTAssertEqual(NSDictionary(dictionary: longest), NSDictionary(dictionary: attributes))
             XCTAssertTrue(NSLocationInRange(location, longestRange))
         }
     }

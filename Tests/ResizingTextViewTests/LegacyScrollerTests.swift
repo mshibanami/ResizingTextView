@@ -5,32 +5,6 @@ import XCTest
 @testable import ResizingTextView
 
 @MainActor
-private final class ScrollerGuides {
-    var first: CGFloat?
-    var last: CGFloat?
-}
-
-@available(macOS 13.0, *)
-private struct ScrollerGuideReader: Layout {
-    let guides: ScrollerGuides
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        subviews[0].sizeThatFits(proposal)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
-        let dimensions = subviews[0].dimensions(in: proposal)
-        let first = dimensions[.firstTextBaseline]
-        let last = dimensions[.lastTextBaseline]
-        MainActor.assumeIsolated {
-            guides.first = first
-            guides.last = last
-        }
-        subviews[0].place(at: bounds.origin, proposal: proposal)
-    }
-}
-
-@MainActor
 final class LegacyScrollerTests: XCTestCase {
     private var originalImplementation: IMP?
 
@@ -69,9 +43,9 @@ final class LegacyScrollerTests: XCTestCase {
         }
         let text = String(repeating: "wrap me please ", count: 30)
         for location in stride(from: 0, to: 60, by: 3) {
-            let guides = ScrollerGuides()
+            let guides = BaselineGuides()
             let hosted = Hosted(VStack(alignment: .leading, spacing: 0) {
-                ScrollerGuideReader(guides: guides) {
+                BaselineReader(guides: guides) {
                     ResizingTextView(text: .constant(text), isScrollable: true)
                         .decorations([TextDecoration(
                             range: NSRange(location: location, length: 1),
@@ -84,8 +58,10 @@ final class LegacyScrollerTests: XCTestCase {
             let textView = hosted.textView
             let layoutManager = textView.layoutManager!
             var lines: [(baseline: CGFloat, maxY: CGFloat)] = []
-            layoutManager.enumerateLineFragments(forGlyphRange: layoutManager.glyphRange(for: textView.textContainer!)) { rect, usedRect, _, glyphRange, _ in
-                lines.append((textView.textContainerOrigin.y + rect.minY + layoutManager.location(forGlyphAt: glyphRange.location).y, usedRect.maxY))
+            let allGlyphs = layoutManager.glyphRange(for: textView.textContainer!)
+            layoutManager.enumerateLineFragments(forGlyphRange: allGlyphs) { rect, usedRect, _, glyphRange, _ in
+                let baseline = rect.minY + layoutManager.location(forGlyphAt: glyphRange.location).y
+                lines.append((textView.textContainerOrigin.y + baseline, usedRect.maxY))
             }
             let textHeight = textView.enclosingScrollView!.frame.height - textView.textContainerInset.height * 2 - 20
             let lastShownLine = lines.last { $0.maxY <= textHeight + 0.5 } ?? lines[0]

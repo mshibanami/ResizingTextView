@@ -4,40 +4,14 @@ import SwiftUI
 import XCTest
 @testable import ResizingTextView
 
-@MainActor
-private final class MarkedTextGuides {
-    var first: CGFloat?
-    var last: CGFloat?
-}
-
-@available(macOS 13.0, *)
-private struct MarkedTextReader: Layout {
-    let guides: MarkedTextGuides
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        subviews[0].sizeThatFits(proposal)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
-        let dimensions = subviews[0].dimensions(in: proposal)
-        let first = dimensions[.firstTextBaseline]
-        let last = dimensions[.lastTextBaseline]
-        MainActor.assumeIsolated {
-            guides.first = first
-            guides.last = last
-        }
-        subviews[0].place(at: bounds.origin, proposal: proposal)
-    }
-}
-
 @available(macOS 13.0, *)
 private struct MarkedTextHost: View {
     @ObservedObject var model: TestModel
-    let guides: MarkedTextGuides
+    let guides: BaselineGuides
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            MarkedTextReader(guides: guides) {
+            BaselineReader(guides: guides) {
                 ResizingTextView(text: $model.text)
             }
             Spacer(minLength: 0)
@@ -54,7 +28,7 @@ final class MarkedTextLayoutTests: XCTestCase {
         }
         let model = TestModel()
         model.text = "abc"
-        let guides = MarkedTextGuides()
+        let guides = BaselineGuides()
         let hosted = Hosted(MarkedTextHost(model: model, guides: guides))
         hosted.focus()
         let markedText = String(repeating: "にほんご", count: 10)
@@ -67,17 +41,12 @@ final class MarkedTextLayoutTests: XCTestCase {
         XCTAssertTrue(hosted.textView.hasMarkedText())
 
         let textView = hosted.textView
-        let layoutManager = textView.layoutManager!
-        let glyphRange = layoutManager.glyphRange(for: textView.textContainer!)
-        func baseline(ofGlyphAt index: Int) -> CGFloat {
-            textView.textContainerOrigin.y
-                + layoutManager.lineFragmentRect(forGlyphAt: index, effectiveRange: nil).minY
-                + layoutManager.location(forGlyphAt: index).y
-        }
-        let textBottom = textView.textContainerOrigin.y + layoutManager.usedRect(for: textView.textContainer!).maxY
+        let usedRect = textView.layoutManager!.usedRect(for: textView.textContainer!)
+        let textBottom = textView.textContainerOrigin.y + usedRect.maxY
         XCTAssertGreaterThanOrEqual(textView.enclosingScrollView!.frame.height, textBottom)
-        XCTAssertEqual(guides.first ?? -1, baseline(ofGlyphAt: glyphRange.location), accuracy: 0.5)
-        XCTAssertEqual(guides.last ?? -1, baseline(ofGlyphAt: glyphRange.upperBound - 1), accuracy: 0.5)
+        let (expectedFirst, expectedLast) = BaselineAlignmentTests.baselines(of: textView)
+        XCTAssertEqual(guides.first ?? -1, expectedFirst, accuracy: 0.5)
+        XCTAssertEqual(guides.last ?? -1, expectedLast, accuracy: 0.5)
         hosted.close()
     }
 }
